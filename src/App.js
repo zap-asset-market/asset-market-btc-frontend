@@ -2,22 +2,23 @@ import React from 'react';
 import './App.css';
 import Button from '@material-ui/core/Button';
 import web3 from './web3';
-import MainMarket from './contracts/MainMarket'
+import MainMarket from './contracts/MainMarket';
+import MainMarketToken from './contracts/MainMarketToken';
 
 async function bond() {
-	const balance = await web3.eth.getBalance(MainMarket.options.address);
-	console.log("balance: ", balance);
+	let accounts = await web3.eth.getAccounts();
 
-    const accounts = await web3.eth.getAccounts();
+    let mmZap = await MainMarket.methods.getZapBalance(MainMarket.options.address).call();
+    console.log("main market zap: ", mmZap.toString());
 
-    console.log("accounts: ", accounts);
-    
-    // await MainMarket.methods.depositZap(20000).send({
-    //   from: accounts[0]
-    // });
+    let mmtBal = await MainMarket.methods.getMMTBalance(accounts[0]).call();
+    let mMmmtBal = await MainMarket.methods.getMMTBalance(MainMarket.options.address).call();
+    // let allowance = await MainMarketToken.methods.allowance(accounts[0], MainMarket.options.address);
+    console.log("mmtBal: ", mmtBal.toString());
+    console.log("MMmmtBal: ", mMmmtBal.toString());
 
-    let zapBalance = await MainMarket.methods.getZapBalance(accounts[0]).call();
-    console.log("zapBalance: ", zapBalance.toString());
+    await MainMarket.methods.bond('5').send({from: accounts[0]});
+
 }
 
 function App() {

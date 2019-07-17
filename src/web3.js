@@ -4,9 +4,12 @@ const options = {
     transactionConfirmationBlocks: 1
 }
 
+var web3Provider;
 const getProvider = async () => {
-  // Modern dapp browsers...
+  // await window.web3.currentProvider.enable(); // request authentication
+
   if (window.ethereum) {
+    web3Provider = window.ethereum;
     try {
       // Request account access
       await window.ethereum.enable();
@@ -14,13 +17,24 @@ const getProvider = async () => {
       // User denied account access...
       console.error("User denied account access")
     }
-  } else if(window.web3){
-    await window.web3.currentProvider.enable(); // request authentication
+  }
+  // Legacy dapp browsers...
+  else if (window.web3) {
+    web3Provider = window.web3.currentProvider;
+  }
+  // If no injected web3 instance is detected, fall back to Ganache
+  else {
+    console.log("localhost");
+    web3Provider = new Web3.providers.HttpProvider('http://localhost:9545');
   }
 };
 
 getProvider();
 
-const web3 = new Web3('http://localhost:9545', null, options);
+
+
+// let web3Provider = new Web3.providers.HttpProvider('http://127.0.0.1:9545/');
+// const web3 = new Web3(window.web3.currentProvider, null, options);
+const web3 = new Web3(web3Provider, null, options);
 
 export default web3;
