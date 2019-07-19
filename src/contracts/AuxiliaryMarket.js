@@ -1,6 +1,11 @@
-import web3 from './web3';
+import web3 from '../web3';
 
-  
+//cli address
+const address = '0x347A8327B042260Ec269B04c208BCB22eB4B39B3';
+
+//ganache address
+// const address = '0xeB9deF6183A0abc0C687576FCd68e92ac023142D';
+
 const abi = [
     {
       "constant": true,
@@ -144,7 +149,12 @@ const abi = [
         }
       ],
       "name": "sell",
-      "outputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
       "payable": false,
       "stateMutability": "nonpayable",
       "type": "function"
@@ -215,4 +225,6 @@ const abi = [
       "stateMutability": "view",
       "type": "function"
     }
-  ],
+  ];
+
+export default new web3.eth.Contract(abi, address);

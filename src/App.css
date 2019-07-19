@@ -1,3 +1,18 @@
 .App {
   text-align: center;
 }
+
+.navMenu {
+	display: flex;
+	list-style-type:none;
+}
+
+.navBarLink{
+	padding: 3em;
+	display: inline;
+}
+
+.title {
+	display: inline-block;
+	width: 400px;
+}
