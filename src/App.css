@@ -1,18 +1,20 @@
 .App {
   text-align: center;
+  font-family: 'Roboto', sans-serif;
 }
 
-.navMenu {
-	display: flex;
-	list-style-type:none;
+.layout{
+  min-height: 100vh;
+  background-color: #CFD7DA;
+  /*there is a stutter when pressing buttons and it seem that adding padding fixes it.*/
+  padding: 10px;
 }
 
-.navBarLink{
-	padding: 3em;
-	display: inline;
+h1, h2, h3, h4{
+  font-weight: 100;
+  color: red;
 }
 
-.title {
-	display: inline-block;
-	width: 400px;
+.container {
+  padding: 20px;
 }
