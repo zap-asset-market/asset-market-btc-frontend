@@ -1,43 +1,42 @@
 import React from 'react';
 import { makeStyles, createMuiTheme } from '@material-ui/core/styles';
-import { AppBar,
-        Button,
-        Toolbar,
-        IconButton, 
-        Typography, 
-        MenuItem,
-        Menu,
-        Link
-        }
-from '@material-ui/core';
+import {
+  AppBar,
+  Button,
+  Toolbar,
+  IconButton,
+  Typography,
+  MenuItem,
+  Menu,
+  Link
+} from '@material-ui/core';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import MoreIcon from '@material-ui/icons/MoreVert';
 import { Link as RouterLink } from 'react-router-dom';
-import AuxiliaryMenu from '../auxiliaryMenu/AuxiliaryMenu';
 import { ThemeProvider } from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   grow: {
-    flexGrow: 1,
+    flexGrow: 1
   },
   title: {
     [theme.breakpoints.up('sm')]: {
       display: 'block',
       fontWeight: 100
     },
-  color: theme.palette.text.primary
+    color: theme.palette.text.primary
   },
   sectionDesktop: {
     display: 'none',
     [theme.breakpoints.up('md')]: {
-      display: 'flex',
-    },
+      display: 'flex'
+    }
   },
   sectionMobile: {
     display: 'flex',
     [theme.breakpoints.up('md')]: {
-      display: 'none',
-    },
+      display: 'none'
+    }
   },
   toolbarLink: {
     padding: theme.spacing(1),
@@ -45,14 +44,14 @@ const useStyles = makeStyles(theme => ({
     flexShrink: 0,
     color: theme.palette.text.primary
   },
-  transparent:{
+  transparent: {
     background: 'transparent',
     boxShadow: 'none'
   }
 }));
 
 export default function Header() {
-  console.log("styles: ", useStyles());
+  console.log('styles: ', useStyles());
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
@@ -77,9 +76,7 @@ export default function Header() {
     setMobileMoreAnchorEl(event.currentTarget);
   }
 
-  function handleClick() {
-    
-  }
+  function handleClick() {}
 
   const menuId = 'primary-search-account-menu';
   const renderMenu = (
@@ -115,11 +112,10 @@ export default function Header() {
       </MenuItem>
       <MenuItem>
         <Link component={RouterLink} to='/auxMarket'>
-          Auxiliary markets 
+          Auxiliary markets
         </Link>
       </MenuItem>
       <MenuItem onClick={handleProfileMenuOpen}>
-     
         <p>Profile</p>
       </MenuItem>
     </Menu>
@@ -127,10 +123,10 @@ export default function Header() {
 
   return (
     <React.Fragment>
-      <AppBar className={classes.transparent} position="static">
+      <AppBar className={classes.transparent} position='static'>
         <Toolbar>
           <Link component={RouterLink} to='/'>
-            <Typography variant="h4" className={classes.title} noWrap>
+            <Typography variant='h4' className={classes.title} noWrap>
               Asset Market
             </Typography>
           </Link>
@@ -138,7 +134,7 @@ export default function Header() {
           <div className={classes.sectionDesktop}>
             <Button>
               <Link
-                color="secondary"
+                color='secondary'
                 className={classes.toolbarLink}
                 component={RouterLink}
                 to='/mainMarket'
@@ -149,35 +145,34 @@ export default function Header() {
             </Button>
             <Button>
               <Link
-                color="inherit"
-                href="#text-buttons"
+                color='inherit'
+                href='#text-buttons'
                 className={classes.toolbarLink}
                 component={RouterLink}
                 to='/auxMarket'
                 underline='none'
-              > 
+              >
                 auxiliary Market
               </Link>
             </Button>
-            <AuxiliaryMenu/>
             <IconButton
-              edge="end"
-              aria-label="Account of current user"
+              edge='end'
+              aria-label='Account of current user'
               aria-controls={menuId}
-              aria-haspopup="true"
+              aria-haspopup='true'
               onClick={handleProfileMenuOpen}
-              color="inherit"
+              color='inherit'
             >
               <AccountCircle />
             </IconButton>
           </div>
           <div className={classes.sectionMobile}>
             <IconButton
-              aria-label="Show more"
+              aria-label='Show more'
               aria-controls={mobileMenuId}
-              aria-haspopup="true"
+              aria-haspopup='true'
               onClick={handleMobileMenuOpen}
-              color="inherit"
+              color='inherit'
             >
               <MoreIcon />
             </IconButton>
