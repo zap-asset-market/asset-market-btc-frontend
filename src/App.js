@@ -53,7 +53,7 @@ class App extends Component {
       .getBalance(accounts[0])
       .call();
 
-    this.state.zapBalance = zapBalance;
+    this.state.zapBalance = zapBalance.toString();
     console.log(this.state.zapBalance);
     //console.log(zapBalance.toString());
   };
