@@ -1,25 +1,24 @@
 import React from 'react';
-import logo from './logo.svg';
+import Header from './components/header/Header';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import LandingPage from './pages/landingPage/LandingPage';
+import MainMarket from './pages/mainMarket/MainMarket';
+import AuxMarket from './pages/auxiliaryMarket/Auxiliary';
+import CssBaseline from '@material-ui/core/CssBaseline';
 import './App.css';
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+
+  	<Router>
+  		<CssBaseline/>
+    	<Switch>
+    		<Route path='/' exact component={LandingPage}/>
+    		<Route path='/mainMarket' component={MainMarket}/>
+    		<Route path='/auxMarket' component={AuxMarket}/>
+    	</Switch>
+	</Router>
   );
 }
 
