@@ -1,32 +1,32 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   Divider,
   Grid,
   Paper,
   Button,
-  ButtonGroup, 
-  List, 
+  ButtonGroup,
+  List,
   ListItem,
   ListItemText,
   MenuItem,
   Typography,
-  TextField } 
-from '@material-ui/core';
+  TextField
+} from '@material-ui/core';
 import { ThemeProvider } from '@material-ui/styles';
 import { makeStyles, createMuiTheme } from '@material-ui/core/styles';
 import { green, red, blue } from '@material-ui/core/colors';
-import Header from '../../components/header/Header'
+import Header from '../../components/header/Header';
 
 const useStyles = makeStyles(theme => ({
   grow: {
-    flexGrow: 1,
+    flexGrow: 1
   },
   textField: {
     marginLeft: theme.spacing(1),
-    marginRight: theme.spacing(1),
+    marginRight: theme.spacing(1)
   },
   menu: {
-    width: 200,
+    width: 200
   },
   form: {
     display: 'flex',
@@ -35,60 +35,57 @@ const useStyles = makeStyles(theme => ({
   blueBtn: {
     backgroundColor: '#54c9ff',
     '&:hover': {
-      backgroundColor: '#48b0e0',
-    },
+      backgroundColor: '#48b0e0'
+    }
   },
   greenBtn: {
     backgroundColor: '#3ed138',
     '&:hover': {
-      backgroundColor: '#31b02c',
-    },
+      backgroundColor: '#31b02c'
+    }
   },
   redBtn: {
     backgroundColor: '#ff2e51',
     '&:hover': {
-      backgroundColor: '#d92745',
-    },
+      backgroundColor: '#d92745'
+    }
   }
-}))
+}));
 
 const theme = createMuiTheme({
   palette: {
-    type: 'light',
-  },
+    type: 'dark'
+  }
 });
-
 
 // const BtnTheme = createMuiTheme({
 //   palette: {
 //      primary: green,
 //      secondary: red,
-//      other: 
+//      other:
 //   },
 // });
-
-console.log("theme: ", theme);
 
 const currencies = [
   {
     value: 'USD',
-    label: '$',
+    label: '$'
   },
   {
     value: 'BTC',
-    label: '฿',
+    label: '฿'
   },
   {
     value: 'wei',
-    label: 'wei',
+    label: 'wei'
   },
   {
     value: 'eth',
-    label: 'eth',
+    label: 'eth'
   },
   {
     value: 'zap',
-    label: 'zap',
+    label: 'zap'
   },
   {
     value: 'mmt',
@@ -99,7 +96,7 @@ const currencies = [
 function MainMarket() {
   const [mmThemeProvidertBalance, setMMtBalance] = useState(getMMTBalance);
   const [values, setValues] = React.useState({
-    currency: 'mmt',
+    currency: 'mmt'
   });
 
   const classes = useStyles();
@@ -115,20 +112,25 @@ function MainMarket() {
 
   const handleChange = name => event => {
     setValues({ ...values, [name]: event.target.value });
-  }
+  };
 
-  return(
+  return (
     <ThemeProvider theme={theme}>
       <div className='layout'>
-        <Header transparent={false}/>
-      	<Grid className='container' container spacing={2} justify='space-around'>
-      		<Grid item xs={12} sm={3}>
+        <Header transparent={false} />
+        <Grid
+          className='container'
+          container
+          spacing={2}
+          justify='space-around'
+        >
+          <Grid item xs={12} sm={3}>
             <Paper>
               <List>
                 <ListItem>
-                    <Typography>MMT Balance</Typography>
-                    <div className={classes.grow} />
-                    <Typography variant='caption'>{getMMTBalance()}</Typography>
+                  <Typography>MMT Balance</Typography>
+                  <div className={classes.grow} />
+                  <Typography variant='caption'>{getMMTBalance()}</Typography>
                 </ListItem>
                 <ListItem>
                   <Typography>zap bal: </Typography>
@@ -140,19 +142,19 @@ function MainMarket() {
               <ListItem>
                 <form className={classes.form}>
                   <TextField
-                    id="standard-select-currency"
+                    id='standard-select-currency'
                     select
-                    label="currency"
+                    label='currency'
                     className={classes.textField}
                     value={values.currency}
                     onChange={handleChange('currency')}
                     SelectProps={{
                       MenuProps: {
-                        className: classes.menu,
-                      },
+                        className: classes.menu
+                      }
                     }}
-                    helperText=""
-                    margin="normal"
+                    helperText=''
+                    margin='normal'
                   >
                     {currencies.map(option => (
                       <MenuItem key={option.value} value={option.value}>
@@ -160,60 +162,66 @@ function MainMarket() {
                       </MenuItem>
                     ))}
                   </TextField>
-               
+
                   <TextField
-                    id="standard-number"
-                    label="Amount"
+                    id='standard-number'
+                    label='Amount'
                     value={values.amount}
                     onChange={handleChange('amount')}
-                    type="number"
+                    type='number'
                     className={classes.textField}
                     InputLabelProps={{
-                     shrink: true,
+                      shrink: true
                     }}
-                   margin="normal"
-                 />
-                </form>  
+                    margin='normal'
+                  />
+                </form>
               </ListItem>
               <ListItem>
-                <Grid container justify='space-between' alignItems='stretch' spacing={1}>
+                <Grid
+                  container
+                  justify='space-between'
+                  alignItems='stretch'
+                  spacing={1}
+                >
                   <Grid item xs={6} lg={5}>
                     <Button
                       className={classes.greenBtn}
                       variant='contained'
                       fullWidth
-                      style={{height: '100%'}}
-                    >Buy MMT
+                      style={{ height: '100%' }}
+                    >
+                      Buy MMT
                     </Button>
-                  </Grid>  
+                  </Grid>
                   <Grid item xs={6} lg={5}>
                     <Button
                       className={classes.redBtn}
                       variant='contained'
                       fullWidth
-                      style={{height: '100%'}}
-                      >Sell MMT
-                      </Button>
+                      style={{ height: '100%' }}
+                    >
+                      Sell MMT
+                    </Button>
                   </Grid>
                   <Grid item xs={12}>
                     <Button
                       className={classes.blueBtn}
                       variant='contained'
                       fullWidth
-                      style={{height: '100%'}}
-                      >Depoisit Zap
-                      </Button>
-                  </Grid>          
+                      style={{ height: '100%' }}
+                    >
+                      Depoisit Zap
+                    </Button>
+                  </Grid>
                 </Grid>
               </ListItem>
             </Paper>
-      		</Grid>
-      		<Grid item xs={12} sm={9}>
-            <Paper>
-              show curve
-            </Paper>
-      		</Grid>
-      	</Grid>
+          </Grid>
+          <Grid item xs={12} sm={9}>
+            <Paper>show curve</Paper>
+          </Grid>
+        </Grid>
       </div>
     </ThemeProvider>
   );

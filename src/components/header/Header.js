@@ -51,7 +51,6 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function Header() {
-  console.log('styles: ', useStyles());
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
