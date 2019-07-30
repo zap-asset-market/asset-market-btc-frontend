@@ -1,6 +1,6 @@
 import web3 from '../web3.js';
 
-const address = '0x90Cc8ff484fE2A1bABc5c100f96a4e5A53A84f21';
+const address = '0x9f843b2d5801C74A4902cE18aCCf5f7e29269A8a';
 
 const abi = [
   {
@@ -30,37 +30,6 @@ const abi = [
       {
         name: '',
         type: 'address'
-      }
-    ],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
-    constant: true,
-    inputs: [
-      {
-        name: '',
-        type: 'address'
-      }
-    ],
-    name: 'holders',
-    outputs: [
-      {
-        name: 'initialized',
-        type: 'bool'
-      },
-      {
-        name: 'tokens',
-        type: 'uint256'
-      },
-      {
-        name: 'zapBalance',
-        type: 'uint256'
-      },
-      {
-        name: 'bonded',
-        type: 'bool'
       }
     ],
     payable: false,
@@ -166,20 +135,6 @@ const abi = [
     type: 'function'
   },
   {
-    constant: true,
-    inputs: [],
-    name: 'zapInWei',
-    outputs: [
-      {
-        name: '',
-        type: 'uint256'
-      }
-    ],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function'
-  },
-  {
     inputs: [
       {
         name: '_zapCoor',
@@ -241,25 +196,6 @@ const abi = [
       {
         name: '',
         type: 'uint256'
-      }
-    ],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'function'
-  },
-  {
-    constant: false,
-    inputs: [
-      {
-        name: 'addr',
-        type: 'address'
-      }
-    ],
-    name: 'remove',
-    outputs: [
-      {
-        name: '',
-        type: 'bool'
       }
     ],
     payable: false,
