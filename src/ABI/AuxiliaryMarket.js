@@ -61,17 +61,12 @@ const abi = [
   },
   {
     constant: true,
-    inputs: [
-      {
-        name: '',
-        type: 'uint256'
-      }
-    ],
-    name: 'assetPrices',
+    inputs: [],
+    name: 'bondage',
     outputs: [
       {
         name: '',
-        type: 'uint256'
+        type: 'address'
       }
     ],
     payable: false,
@@ -81,11 +76,11 @@ const abi = [
   {
     constant: true,
     inputs: [],
-    name: 'auxTokenPrice',
+    name: 'dispatch',
     outputs: [
       {
         name: '',
-        type: 'uint256'
+        type: 'address'
       }
     ],
     payable: false,
@@ -104,18 +99,31 @@ const abi = [
     type: 'constructor'
   },
   {
-    constant: false,
-    inputs: [],
-    name: 'random',
-    outputs: [
+    anonymous: false,
+    inputs: [
       {
-        name: '',
+        indexed: false,
+        name: 'response1',
         type: 'uint256'
+      },
+      {
+        indexed: false,
+        name: 'response2',
+        type: 'uint256'
+      },
+      {
+        indexed: false,
+        name: 'response3',
+        type: 'string'
+      },
+      {
+        indexed: false,
+        name: 'response4',
+        type: 'string'
       }
     ],
-    payable: false,
-    stateMutability: 'nonpayable',
-    type: 'function'
+    name: 'Results',
+    type: 'event'
   },
   {
     constant: false,
@@ -126,12 +134,7 @@ const abi = [
       }
     ],
     name: 'buy',
-    outputs: [
-      {
-        name: '',
-        type: 'uint256'
-      }
-    ],
+    outputs: [],
     payable: false,
     stateMutability: 'nonpayable',
     type: 'function'
@@ -152,14 +155,22 @@ const abi = [
   },
   {
     constant: false,
-    inputs: [],
-    name: 'getCurrentPrice',
-    outputs: [
+    inputs: [
       {
-        name: '',
+        name: 'id',
         type: 'uint256'
+      },
+      {
+        name: 'response1',
+        type: 'string'
+      },
+      {
+        name: 'response2',
+        type: 'string'
       }
     ],
+    name: 'callback',
+    outputs: [],
     payable: false,
     stateMutability: 'nonpayable',
     type: 'function'
@@ -172,7 +183,7 @@ const abi = [
         type: 'address'
       }
     ],
-    name: 'getBalance',
+    name: 'getZapBalance',
     outputs: [
       {
         name: '',
