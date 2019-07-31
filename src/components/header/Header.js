@@ -13,7 +13,6 @@ from '@material-ui/core';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import MoreIcon from '@material-ui/icons/MoreVert';
 import { Link as RouterLink } from 'react-router-dom';
-import AuxiliaryMenu from '../auxiliaryMenu/AuxiliaryMenu';
 import { ThemeProvider } from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -159,7 +158,6 @@ export default function Header() {
                 auxiliary Market
               </Link>
             </Button>
-            <AuxiliaryMenu/>
             <IconButton
               edge="end"
               aria-label="Account of current user"
