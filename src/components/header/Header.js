@@ -129,7 +129,7 @@ export default function Header() {
     <React.Fragment>
       <AppBar className={classes.transparent} position="static">
         <Toolbar>
-          <Link component={RouterLink} to='/'>
+          <Link component={RouterLink} to='/' underline='none'>
             <Typography variant="h4" className={classes.title} noWrap>
               Asset Market
             </Typography>

@@ -201,7 +201,7 @@ function MainMarket() {
                       variant='contained'
                       fullWidth
                       style={{height: '100%'}}
-                      >Depoisit Zap
+                      >Deposit Zap
                       </Button>
                   </Grid>          
                 </Grid>
