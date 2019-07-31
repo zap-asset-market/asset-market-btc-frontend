@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import web3 from '../../web3.js';
+import React, { useState } from 'react';
 import {
   Divider,
   Grid,
@@ -16,9 +15,7 @@ import {
 import { ThemeProvider } from '@material-ui/styles';
 import { makeStyles, createMuiTheme } from '@material-ui/core/styles';
 import { green, red, blue } from '@material-ui/core/colors';
-import Header from '../../components/header/Header';
-import AuxiliaryMarketContract from '../../ABI/AuxiliaryMarket.js';
-import AuxiliaryMarketTokenContract from '../../ABI/AuxiliaryMarketToken';
+import Header from '../layout/Header';
 
 const useStyles = makeStyles(theme => ({
   grow: {
@@ -61,6 +58,14 @@ const theme = createMuiTheme({
   }
 });
 
+// const BtnTheme = createMuiTheme({
+//   palette: {
+//      primary: green,
+//      secondary: red,
+//      other:
+//   },
+// });
+
 const currencies = [
   {
     value: 'USD',
@@ -71,29 +76,27 @@ const currencies = [
     label: '฿'
   },
   {
-    value: 'WEI',
-    label: 'WEI'
+    value: 'wei',
+    label: 'wei'
   },
   {
-    value: 'ETH',
-    label: 'ETH'
+    value: 'eth',
+    label: 'eth'
   },
   {
-    value: 'ZAP',
-    label: 'ZAP'
+    value: 'zap',
+    label: 'zap'
   },
   {
-    value: 'AMT',
-    label: 'AMT'
+    value: 'mmt',
+    label: 'mmt'
   }
 ];
 
-function AuxiliaryMarket() {
-  const [currentPrice, setCurrentPrice] = useState('current price');
-  const [zapBalance, setZapBalance] = useState('zap balance');
-  const [amtBalance, setAmtBalance] = useState('amt balance');
-  const [values, setValues] = useState({
-    currency: 'AMT'
+function MainMarket() {
+  const [mmThemeProvidertBalance, setMMtBalance] = useState(getMMTBalance);
+  const [values, setValues] = React.useState({
+    currency: 'mmt'
   });
 
   const classes = useStyles();
@@ -111,75 +114,6 @@ function AuxiliaryMarket() {
     setValues({ ...values, [name]: event.target.value });
   };
 
-  const getCurrentPrice = async () => {
-    const auxad = await AuxiliaryMarketContract.address;
-    console.log(auxad);
-
-    const currentPrice = await AuxiliaryMarketContract.methods
-      .getCurrentPrice()
-      .call();
-
-    console.log(currentPrice.toString());
-  };
-
-  const getBalance = async _address => {
-    const accounts = await web3.eth.getAccounts();
-
-    var zapBalance = await AuxiliaryMarketContract.methods
-      .getBalance(accounts[0])
-      .call();
-
-    zapBalance = zapBalance.toString();
-    console.log(zapBalance);
-    return 10;
-  };
-
-  const getAMTBalance = async _owner => {
-    const accounts = await web3.eth.getAccounts();
-
-    const amtBalance = await AuxiliaryMarketContract.methods
-      .getAMTBalance(accounts[0])
-      .call();
-
-    console.log(amtBalance.toString());
-  };
-
-  const approve = async () => {
-    const accounts = await web3.eth.getAccounts();
-
-    await AuxiliaryMarketTokenContract.methods
-      .approve('0x90Cc8ff484fE2A1bABc5c100f96a4e5A53A84f21', '4000')
-      .send({ from: accounts[0] })
-      .then(receipt => console.log(receipt))
-      .catch(err => console.log(err));
-  };
-
-  const buy = async _quantity => {
-    const accounts = await web3.eth.getAccounts();
-
-    // const totalWeiZap =
-    await AuxiliaryMarketContract.methods
-      .buy('5000')
-      .send({ from: accounts[0], gas: 126000 })
-      .then(receipt => console.log(receipt))
-      .catch(err => console.log(err));
-
-    //console.log(totalWeiZap);
-  };
-
-  const sell = async _quantity => {
-    const accounts = await web3.eth.getAccounts();
-
-    // const totalWeiZap =
-    await AuxiliaryMarketContract.methods
-      .sell('4000')
-      .send({ from: accounts[0], gas: 300000 })
-      .then(receipt => console.log(receipt))
-      .catch(err => console.log(err));
-
-    //console.log(totalWeiZap);
-  };
-
   return (
     <ThemeProvider theme={theme}>
       <div className='layout'>
@@ -192,19 +126,16 @@ function AuxiliaryMarket() {
         >
           <Grid item xs={12} sm={3}>
             <Paper>
-              <Button onClick={getBalance} color='primary' variant='contained'>
-                Test
-              </Button>
               <List>
                 <ListItem>
-                  <Typography>AMT Balance: </Typography>
+                  <Typography>MMT Balance</Typography>
                   <div className={classes.grow} />
-                  <Typography variant='caption'>{amtBalance}</Typography>
+                  <Typography variant='caption'>{getMMTBalance()}</Typography>
                 </ListItem>
                 <ListItem>
-                  <Typography>Zap Balance: </Typography>
+                  <Typography>zap bal: </Typography>
                   <div className={classes.grow} />
-                  <Typography variant='caption'>{zapBalance}</Typography>
+                  <Typography variant='caption'>{getZapBalance()}</Typography>
                 </ListItem>
               </List>
               <Divider light />
@@ -260,7 +191,7 @@ function AuxiliaryMarket() {
                       fullWidth
                       style={{ height: '100%' }}
                     >
-                      Buy AMT
+                      Buy MMT
                     </Button>
                   </Grid>
                   <Grid item xs={6} lg={5}>
@@ -270,7 +201,7 @@ function AuxiliaryMarket() {
                       fullWidth
                       style={{ height: '100%' }}
                     >
-                      Sell AMT
+                      Sell MMT
                     </Button>
                   </Grid>
                   <Grid item xs={12}>
@@ -280,12 +211,15 @@ function AuxiliaryMarket() {
                       fullWidth
                       style={{ height: '100%' }}
                     >
-                      Deposit Zap
+                      Depoisit Zap
                     </Button>
                   </Grid>
                 </Grid>
               </ListItem>
             </Paper>
+          </Grid>
+          <Grid item xs={12} sm={9}>
+            <Paper>show curve</Paper>
           </Grid>
         </Grid>
       </div>
@@ -293,41 +227,4 @@ function AuxiliaryMarket() {
   );
 }
 
-export default AuxiliaryMarket;
-
-/* <ThemeProvider theme={theme}>
-      <div className='App'>
-        <h1>Asset Market</h1>
-        <Button variant='contained' color='primary'>
-          getCurrentPrice()
-        </Button>
-        <h3>{currentPrice}</h3>
-        <br />
-        <br />
-        <Button variant='contained' color='primary'>
-          getBalance()
-        </Button>
-        <h3>{zapBalance}</h3>
-        <br />
-        <br />
-        <Button variant='contained' color='primary'>
-          getAMTBalance()
-        </Button>
-        <h3>{amtBalance}</h3>
-        <br />
-        <br />
-        <Button variant='contained' color='primary'>
-          approve()
-        </Button>
-        <br />
-        <br />
-        <Button variant='contained' color='primary'>
-          buy()
-        </Button>
-        <br />
-        <br />
-        <Button variant='contained' color='primary'>
-          sell()
-        </Button>
-      </div>
-    </ThemeProvider> */
+export default MainMarket;
