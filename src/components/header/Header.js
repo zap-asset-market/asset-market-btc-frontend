@@ -47,11 +47,14 @@ const useStyles = makeStyles(theme => ({
   transparent:{
     background: 'transparent',
     boxShadow: 'none'
+  },
+  appBar: {
+    backgroundColor: theme.palette.background.paper
   }
 }));
 
-export default function Header() {
-  console.log("styles: ", useStyles());
+
+export default function Header(props) {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
@@ -124,9 +127,17 @@ export default function Header() {
     </Menu>
   );
 
+  //dynamically make the app bar transparant
+  let barClass;
+  if (props.transparent) {
+    barClass =  classes.transparent; 
+  } else { 
+    barClass = classes.appBar;
+  }
+
   return (
     <React.Fragment>
-      <AppBar className={classes.transparent} position="static">
+      <AppBar className={barClass} position="static">
         <Toolbar>
           <Link component={RouterLink} to='/' underline='none'>
             <Typography variant="h4" className={classes.title} noWrap>

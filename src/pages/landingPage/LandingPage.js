@@ -55,7 +55,7 @@ function LandingPage() {
 	return(
 		<ThemeProvider theme={theme}>
 			<div className={'hero-image'}>
-				<Header/>
+				<Header transparent={true}/>
 				<div className={'landing-pg-carousel'}>
 					<Slider {...settings}>	
 						<div className='carousel-text'>
