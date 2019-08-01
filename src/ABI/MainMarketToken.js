@@ -1,6 +1,6 @@
 import web3 from '../web3.js';
 
-const address = '0xF426335dD8582f407854369c251a716558761Ab0';
+const address = '0xB12FbFE99E18E0BE39DbAC8Ab41aB4cadeF19416';
 
 const abi = [
   {
@@ -458,3 +458,5 @@ const abi = [
     type: 'function'
   }
 ];
+
+export default new web3.eth.Contract(abi, address);

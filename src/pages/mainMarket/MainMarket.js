@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import web3 from '../../web3.js';
+import MainMarketTokenContract from '../../ABI/MainMarketToken';
+import MainMarketContract from '../../ABI/MainMarket.js';
+import ZapTokenContract from '../../ABI/ZapToken.js';
 import {
   Divider,
   Grid,
@@ -93,27 +97,77 @@ const currencies = [
   }
 ];
 
-function MainMarket() {
-  const [mmThemeProvidertBalance, setMMtBalance] = useState(getMMTBalance);
-  const [values, setValues] = React.useState({
-    currency: 'mmt'
+function MainMarket() {  
+  //state of inputs
+  const [values, setValues] = useState({
+    currency: 'mmt',
+    mmtBuyAmount: "",
+    mmtBal: 0,
+    zapAmount: "",  //amount user want to buy
+    depositedZap: 0 //zap user has in the exchange
   });
 
   const classes = useStyles();
 
-  //TODO: allow user to display in MMTwei or MMT
-  function getMMTBalance() {
-    return 2000000;
+
+  async function depositZap(){
+    const accounts = await web3.eth.getAccounts();
+
+    try {
+      //approve zap in order to deposit to main market
+      await ZapTokenContract.methods
+        .approve(MainMarketContract.options.address, values.zapAmount)
+        .send({from: accounts[0], gas:400000});
+
+      //tranfer zap to main market
+      await MainMarketContract.methods
+        .depositZap(values.zapAmount)
+        .send({ from: accounts[0] })
+    } catch (error) {
+      console.log(error);
+    }
+
+    //update new zapbalance
+    let depositedZap = await getZapBalance();
+    console.log("depositedZap: ". depositedZap);
+    setValues({...values, depositedZap: depositedZap});
   }
 
-  function getZapBalance() {
-    return 3000000;
+  //users mmt balance
+  async function getMMTBalance() {
+    const accounts = await web3.eth.getAccounts();
+
+    return MainMarketTokenContract.methods.balanceOf(accounts[0]).call();
+  }
+
+  //return amount of zap user can spend in main market / amount of zap deposited in main market
+  async function getZapBalance() {
+    const accounts = await web3.eth.getAccounts();
+    let deposited = await MainMarketContract.methods.getDepositedZap().call();
+    return deposited.toString();
   }
 
   const handleChange = name => event => {
     setValues({ ...values, [name]: event.target.value });
   };
 
+  // Similar to componentDidMount and componentDidUpdate
+  useEffect(() => {
+    let depositedZap = getZapBalance();
+    let mmtBal = getMMTBalance();
+
+   Promise.all([mmtBal, depositedZap])
+      .then(values => {
+        console.log("values: ", values);
+        setValues({ 
+          ...values,
+          'mmtBal':values[0],
+          'depositedZap': values[1]
+           });
+      });
+  }, [values.mmtBal, values.depositedZap]);
+
+  console.log("main methods: ", MainMarketContract.methods);
   return (
     <ThemeProvider theme={theme}>
       <div className='layout'>
@@ -130,92 +184,116 @@ function MainMarket() {
                 <ListItem>
                   <Typography>MMT Balance</Typography>
                   <div className={classes.grow} />
-                  <Typography variant='caption'>{getMMTBalance()}</Typography>
+                  <Typography variant='caption'>{values.mmtBal}</Typography>
                 </ListItem>
                 <ListItem>
                   <Typography>zap bal: </Typography>
                   <div className={classes.grow} />
-                  <Typography variant='caption'>{getZapBalance()}</Typography>
+                  <Typography variant='caption'>{values.depositedZap}</Typography>
                 </ListItem>
               </List>
-              <Divider light />
-              <ListItem>
-                <form className={classes.form}>
-                  <TextField
-                    id='standard-select-currency'
-                    select
-                    label='currency'
-                    className={classes.textField}
-                    value={values.currency}
-                    onChange={handleChange('currency')}
-                    SelectProps={{
-                      MenuProps: {
-                        className: classes.menu
-                      }
-                    }}
-                    helperText=''
-                    margin='normal'
-                  >
-                    {currencies.map(option => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
 
-                  <TextField
-                    id='standard-number'
-                    label='Amount'
-                    value={values.amount}
-                    onChange={handleChange('amount')}
-                    type='number'
-                    className={classes.textField}
-                    InputLabelProps={{
-                      shrink: true
-                    }}
-                    margin='normal'
-                  />
-                </form>
-              </ListItem>
-              <ListItem>
-                <Grid
-                  container
-                  justify='space-between'
-                  alignItems='stretch'
-                  spacing={1}
-                >
-                  <Grid item xs={6} lg={5}>
-                    <Button
-                      className={classes.greenBtn}
-                      variant='contained'
-                      fullWidth
-                      style={{ height: '100%' }}
+              <Divider light />
+              
+              <form className={classes.form}>
+                <ListItem>
+                    <TextField
+                      id='standard-select-currency'
+                      select
+                      label='currency'
+                      className={classes.textField}
+                      value={values.currency}
+                      onChange={handleChange('currency')}
+                      SelectProps={{
+                        MenuProps: {
+                          className: classes.menu
+                        }
+                      }}
+                      helperText=''
+                      margin='normal'
                     >
-                      Buy MMT
-                    </Button>
+                      {currencies.map(option => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+
+                    <TextField
+                      id='standard-number'
+                      label='Amount'
+                      placeholder='0'
+                      value={values.mmtBuyAmount}
+                      onChange={handleChange('mmtBuyAmount')}
+                      type='number'
+                      className={classes.textField}
+                      InputLabelProps={{
+                        shrink: true
+                      }}
+                      margin='normal'
+                    />
+                </ListItem>
+                <ListItem>
+                  <Grid
+                    container
+                    justify='space-between'
+                    alignItems='stretch'
+                    spacing={1}
+                  >
+                    <Grid item xs={6} lg={5}>
+                      <Button
+                        className={classes.greenBtn}
+                        variant='contained'
+                        fullWidth
+                        style={{ height: '100%' }}
+                      >
+                        Buy MMT
+                      </Button>
+                    </Grid>
+                    <Grid item xs={6} lg={5}>
+                      <Button
+                        className={classes.redBtn}
+                        variant='contained'
+                        fullWidth
+                        style={{ height: '100%' }}
+                      >
+                        Sell MMT
+                      </Button>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <Divider light />
+                    </Grid>
+                    <ListItem>
+                      <TextField
+                        id='standard-number'
+                        label='zap Amount'
+                        placeholder='0'
+                        value={values.zapAmount}
+                        onChange={handleChange('zapAmount')}
+                        type='number'
+                        className={classes.textField}
+                        InputLabelProps={{
+                          shrink: true
+                        }}
+                        margin='normal'
+                      />
+                    </ListItem>
+
+                    <Grid item xs={12}>
+                      <Button
+                        className={classes.blueBtn}
+                        variant='contained'
+                        fullWidth
+                        style={{ height: '100%' }}
+                        onClick={depositZap}
+                      >
+                        Depoisit Zap
+                      </Button>
+                    </Grid>
                   </Grid>
-                  <Grid item xs={6} lg={5}>
-                    <Button
-                      className={classes.redBtn}
-                      variant='contained'
-                      fullWidth
-                      style={{ height: '100%' }}
-                    >
-                      Sell MMT
-                    </Button>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Button
-                      className={classes.blueBtn}
-                      variant='contained'
-                      fullWidth
-                      style={{ height: '100%' }}
-                    >
-                      Depoisit Zap
-                    </Button>
-                  </Grid>
-                </Grid>
-              </ListItem>
+                </ListItem>
+              </form>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={9}>
