@@ -104,11 +104,16 @@ function MainMarket() {
     mmtBuyAmount: "",
     mmtBal: 0,
     zapAmount: "",  //amount user want to buy
-    depositedZap: 0 //zap user has in the exchange
+    depositedZap: 0, //zap user has in the exchange
+    userAddress: ""
   });
 
   const classes = useStyles();
 
+  async function getAddress () {
+    let accounts = await web3.eth.getAccounts();
+    return accounts[0];
+  }
 
   async function depositZap(){
     const accounts = await web3.eth.getAccounts();
@@ -129,22 +134,38 @@ function MainMarket() {
 
     //update new zapbalance
     let depositedZap = await getZapBalance();
-    console.log("depositedZap: ". depositedZap);
+    console.log("depositedZap: ", depositedZap);
     setValues({...values, depositedZap: depositedZap});
   }
 
   //users mmt balance
   async function getMMTBalance() {
-    const accounts = await web3.eth.getAccounts();
-
-    return MainMarketTokenContract.methods.balanceOf(accounts[0]).call();
+    // let accounts = await web3.eth.getAccounts();
+    console.log("userAddress: ", values.userAddress);
+    let mmtBal = await MainMarketContract.methods.getMMTBalance(values.userAddress).call();
+    return mmtBal.toString()
   }
 
   //return amount of zap user can spend in main market / amount of zap deposited in main market
   async function getZapBalance() {
-    const accounts = await web3.eth.getAccounts();
     let deposited = await MainMarketContract.methods.getDepositedZap().call();
+    console.log("deposited: ", deposited.toString());
     return deposited.toString();
+  }
+
+  async function buyMMT() {
+    console.log("buy amount: ", values.mmtBuyAmount);
+    try {
+      await MainMarketContract.methods.bond(values.mmtBuyAmount).send({from: values.userAddress, gas: 1000000})
+    } catch (error) {
+      console.log(error);
+    }
+    // update mmtBal
+    let mmtBal = await getMMTBalance();
+    console.log("new bal: ", mmtBal.toString());
+    // deposit balance should've decreased
+    let depositedZap = await getZapBalance();
+    setValues({...values, 'mmtBal': mmtBal, 'depositedZap': depositedZap});
   }
 
   const handleChange = name => event => {
@@ -153,21 +174,28 @@ function MainMarket() {
 
   // Similar to componentDidMount and componentDidUpdate
   useEffect(() => {
-    let depositedZap = getZapBalance();
-    let mmtBal = getMMTBalance();
-
-   Promise.all([mmtBal, depositedZap])
-      .then(values => {
-        console.log("values: ", values);
+    
+    const initData = async () => {
+      let userAddress = await getAddress();
+      //before anything we need to get the address
+      console.log("userAddress: ", userAddress);
+      setValues({...values, 'userAddress': userAddress});
+      console.log("values: ", values);
+      try {
+        let results = await Promise.all([getMMTBalance(), getZapBalance()])
         setValues({ 
           ...values,
-          'mmtBal':values[0],
-          'depositedZap': values[1]
-           });
-      });
-  }, [values.mmtBal, values.depositedZap]);
+          'mmtBal':results[0],
+          'depositedZap': results[1]
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    initData();
+  }, [values.userAddress]);
 
-  console.log("main methods: ", MainMarketContract.methods);
+  console.log("values: ", values);
   return (
     <ThemeProvider theme={theme}>
       <div className='layout'>
@@ -246,8 +274,9 @@ function MainMarket() {
                         variant='contained'
                         fullWidth
                         style={{ height: '100%' }}
+                        onClick={buyMMT}
                       >
-                        Buy MMT
+                        Buy MMT/Bond
                       </Button>
                     </Grid>
                     <Grid item xs={6} lg={5}>
