@@ -1,8 +1,6 @@
 import React from 'react';
 import './App.css';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import Button from '@material-ui/core/Button';
-import Header from './components/layout/Header';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import LandingPage from './components/pages/landingPage/LandingPage';
 import MainMarket from './components/mainmarket/MainMarket';
@@ -14,8 +12,8 @@ function App() {
       <CssBaseline />
       <Switch>
         <Route path='/' exact component={LandingPage} />
-        <Route path='/mainMarket' component={MainMarket} />
-        <Route path='/auxMarket' component={AuxiliaryMarket} />
+        <Route path='/MainMarket' component={MainMarket} />
+        <Route path='/AuxiliaryMarket' component={AuxiliaryMarket} />
       </Switch>
     </Router>
   );

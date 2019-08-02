@@ -6,7 +6,7 @@ import 'slick-carousel/slick/slick-theme.css';
 import './LandingPage.css';
 import Header from '../../layout/Header';
 import { ThemeProvider } from '@material-ui/styles';
-import { makeStyles, createMuiTheme } from '@material-ui/core/styles';
+import { createMuiTheme } from '@material-ui/core/styles';
 
 //might make into state
 let redirectPage;
