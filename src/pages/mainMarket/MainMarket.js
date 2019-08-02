@@ -101,7 +101,7 @@ function MainMarket() {
   //state of inputs
   const [values, setValues] = useState({
     currency: 'mmt',
-    mmtBuyAmount: "",
+    mmtAmount: "",
     mmtBal: 0,
     zapAmount: "",  //amount user want to buy
     depositedZap: 0, //zap user has in the exchange
@@ -146,6 +146,7 @@ function MainMarket() {
     return mmtBal.toString()
   }
 
+
   //return amount of zap user can spend in main market / amount of zap deposited in main market
   async function getZapBalance() {
     let deposited = await MainMarketContract.methods.getDepositedZap().call();
@@ -153,19 +154,43 @@ function MainMarket() {
     return deposited.toString();
   }
 
-  async function buyMMT() {
-    console.log("buy amount: ", values.mmtBuyAmount);
+  async function sellMMT() {
+    console.log("selling mmt");
     try {
-      await MainMarketContract.methods.bond(values.mmtBuyAmount).send({from: values.userAddress, gas: 1000000})
+      //first approve main market to tranfeer main market token
+      await MainMarketTokenContract.methods
+      .approve(MainMarketContract.options.address,values.mmtAmount)
+      .send({from: values.userAddress, gas: 1000000});
+
+      console.log("approve successful");
+      //sell the mmt
+      await MainMarketContract.methods.unbond(values.mmtAmount).send({from: values.userAddress, gas: 1000000});
+
+      //update the state
+      //mmt should be less
+      let mmtBal = await getMMTBalance();
+
+      //zap balance should be more
+      let depositedZap = await getZapBalance();
+      setValues({...values, 'mmtBal': mmtBal, 'depositedZap': depositedZap});
     } catch (error) {
       console.log(error);
     }
-    // update mmtBal
-    let mmtBal = await getMMTBalance();
-    console.log("new bal: ", mmtBal.toString());
-    // deposit balance should've decreased
-    let depositedZap = await getZapBalance();
-    setValues({...values, 'mmtBal': mmtBal, 'depositedZap': depositedZap});
+  }
+
+  async function buyMMT() {
+    console.log("buy amount: ", values.mmtAmount);
+    try {
+      await MainMarketContract.methods
+      .bond(values.mmtAmount).send({from: values.userAddress, gas: 1000000})
+      // // update mmtBal
+      let mmtBal = await getMMTBalance();
+      // deposit balance should've decreased
+      let depositedZap = await getZapBalance();
+      setValues({...values, 'mmtBal': mmtBal, 'depositedZap': depositedZap});
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   const handleChange = name => event => {
@@ -251,8 +276,8 @@ function MainMarket() {
                       id='standard-number'
                       label='Amount'
                       placeholder='0'
-                      value={values.mmtBuyAmount}
-                      onChange={handleChange('mmtBuyAmount')}
+                      value={values.mmtAmount}
+                      onChange={handleChange('mmtAmount')}
                       type='number'
                       className={classes.textField}
                       InputLabelProps={{
@@ -285,6 +310,7 @@ function MainMarket() {
                         variant='contained'
                         fullWidth
                         style={{ height: '100%' }}
+                        onClick={sellMMT}
                       >
                         Sell MMT
                       </Button>
