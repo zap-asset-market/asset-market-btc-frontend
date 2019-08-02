@@ -16,6 +16,7 @@ import { makeStyles, createMuiTheme } from '@material-ui/core/styles';
 import Header from '../layout/Header';
 import AuxiliaryMarketContract from '../../ABI/AuxiliaryMarket.js';
 import AuxiliaryMarketTokenContract from '../../ABI/AuxiliaryMarketToken';
+import ZapTokenContract from '../../ABI/ZapToken';
 
 const useStyles = makeStyles(theme => ({
   grow: {
@@ -88,17 +89,51 @@ const currencies = [
 function AuxiliaryMarket() {
   const [zapBalance, setZapBalance] = useState('zap balance');
   const [amtBalance, setAmtBalance] = useState('amt balance');
+  const [userAddress, setUserAddress] = useState('');
   const [values, setValues] = useState({
     currency: 'AMT',
     amount: ''
   });
 
+  useEffect(() => {
+    const initData = async () => {
+      let userAddress = await getAddress();
+      try {
+        setUserAddress(userAddress);
+        let amtBalance = await getAMTBalance();
+        setAmtBalance(amtBalance);
+        let zapBalance = await getZapBalance();
+        setZapBalance(zapBalance);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    initData();
+  }, [userAddress]);
+
   const classes = useStyles();
 
   //TODO: allow user to display in MMTwei or MMT
-  function getAMTBalance() {
-    return 2000000;
-  }
+  const getAMTBalance = async () => {
+    const amtBalance = await AuxiliaryMarketContract.methods
+      .getAMTBalance(userAddress)
+      .call();
+
+    return amtBalance.toString();
+  };
+
+  const getZapBalance = async () => {
+    const zapBalance = await ZapTokenContract.methods
+      .balanceOf(userAddress)
+      .call();
+
+    return zapBalance.toString();
+  };
+
+  const getAddress = async () => {
+    let accounts = await web3.eth.getAccounts();
+    return accounts[0];
+  };
 
   // const getAMTBalance = async _owner => {
   //   const accounts = await web3.eth.getAccounts();
@@ -109,10 +144,6 @@ function AuxiliaryMarket() {
 
   //   console.log(amtBalance.toString());
   // };
-
-  function getZapBalance() {
-    return 3000000;
-  }
 
   // const getZapBalance = async _address => {
   //   const accounts = await web3.eth.getAccounts();
@@ -141,10 +172,21 @@ function AuxiliaryMarket() {
       .catch(err => console.log(err));
   };
 
-  const buy = async _quantity => {
+  const buy = async () => {
     const accounts = await web3.eth.getAccounts();
 
-    await AuxiliaryMarketContract.methods.buy(_quantity);
+    AuxiliaryMarketContract.methods
+      .buy(values.amount)
+      .send({ from: userAddress, gas: 6620000 });
+    //.estimateGas({ from: userAddress })
+    //.then(gasAmount => console.log(gasAmount));
+    /*
+      just mint zap to aux market contract
+    */
+
+    let amtBalance = await getAMTBalance();
+
+    setAmtBalance(amtBalance);
 
     // await AuxiliaryMarketContract.methods
     //   .buy('5000')
