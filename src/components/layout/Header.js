@@ -1,5 +1,5 @@
 import React from 'react';
-import { makeStyles, createMuiTheme } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import {
   AppBar,
   Button,
@@ -13,7 +13,6 @@ import {
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import MoreIcon from '@material-ui/icons/MoreVert';
 import { Link as RouterLink } from 'react-router-dom';
-import { ThemeProvider } from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   grow: {
@@ -50,7 +49,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export default function Header() {
+function Header() {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
@@ -74,8 +73,6 @@ export default function Header() {
   function handleMobileMenuOpen(event) {
     setMobileMoreAnchorEl(event.currentTarget);
   }
-
-  function handleClick() {}
 
   const menuId = 'primary-search-account-menu';
   const renderMenu = (
@@ -105,12 +102,12 @@ export default function Header() {
       onClose={handleMobileMenuClose}
     >
       <MenuItem>
-        <Link component={RouterLink} to='/mainMarket'>
+        <Link component={RouterLink} to='/MainMarket'>
           Main Market
         </Link>
       </MenuItem>
       <MenuItem>
-        <Link component={RouterLink} to='/auxMarket'>
+        <Link component={RouterLink} to='/AuxiliaryMarket'>
           Auxiliary markets
         </Link>
       </MenuItem>
@@ -136,7 +133,7 @@ export default function Header() {
                 color='secondary'
                 className={classes.toolbarLink}
                 component={RouterLink}
-                to='/mainMarket'
+                to='/MainMarket'
                 underline='none'
               >
                 Main Market
@@ -148,7 +145,7 @@ export default function Header() {
                 href='#text-buttons'
                 className={classes.toolbarLink}
                 component={RouterLink}
-                to='/auxMarket'
+                to='/AuxiliaryMarket'
                 underline='none'
               >
                 auxiliary Market
@@ -183,3 +180,5 @@ export default function Header() {
     </React.Fragment>
   );
 }
+
+export default Header;

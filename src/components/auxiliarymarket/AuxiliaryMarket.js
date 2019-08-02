@@ -5,17 +5,14 @@ import {
   Grid,
   Paper,
   Button,
-  ButtonGroup,
   List,
   ListItem,
-  ListItemText,
   MenuItem,
   Typography,
   TextField
 } from '@material-ui/core';
 import { ThemeProvider } from '@material-ui/styles';
 import { makeStyles, createMuiTheme } from '@material-ui/core/styles';
-import { green, red, blue } from '@material-ui/core/colors';
 import Header from '../layout/Header';
 import AuxiliaryMarketContract from '../../ABI/AuxiliaryMarket.js';
 import AuxiliaryMarketTokenContract from '../../ABI/AuxiliaryMarketToken';
@@ -89,11 +86,11 @@ const currencies = [
 ];
 
 function AuxiliaryMarket() {
-  const [currentPrice, setCurrentPrice] = useState('current price');
   const [zapBalance, setZapBalance] = useState('zap balance');
   const [amtBalance, setAmtBalance] = useState('amt balance');
   const [values, setValues] = useState({
-    currency: 'AMT'
+    currency: 'AMT',
+    amount: ''
   });
 
   const classes = useStyles();
@@ -129,8 +126,9 @@ function AuxiliaryMarket() {
   //   return 10;
   // };
 
-  const handleChange = name => event => {
-    setValues({ ...values, [name]: event.target.value });
+  const handleChange = event => {
+    setValues({ ...values, [event.target.name]: event.target.value });
+    console.log(values);
   };
 
   const approve = async () => {
@@ -146,14 +144,13 @@ function AuxiliaryMarket() {
   const buy = async _quantity => {
     const accounts = await web3.eth.getAccounts();
 
-    // const totalWeiZap =
-    await AuxiliaryMarketContract.methods
-      .buy('5000')
-      .send({ from: accounts[0], gas: 126000 })
-      .then(receipt => console.log(receipt))
-      .catch(err => console.log(err));
+    await AuxiliaryMarketContract.methods.buy(_quantity);
 
-    //console.log(totalWeiZap);
+    // await AuxiliaryMarketContract.methods
+    //   .buy('5000')
+    //   .send({ from: accounts[0], gas: 126000 })
+    //   .then(receipt => console.log(receipt))
+    //   .catch(err => console.log(err));
   };
 
   const sell = async _quantity => {
@@ -181,13 +178,6 @@ function AuxiliaryMarket() {
         >
           <Grid item xs={12} sm={3}>
             <Paper>
-              <Button
-                onClick={getZapBalance}
-                color='primary'
-                variant='contained'
-              >
-                Test
-              </Button>
               <List>
                 <ListItem>
                   <Typography>AMT Balance: </Typography>
@@ -207,9 +197,10 @@ function AuxiliaryMarket() {
                     id='standard-select-currency'
                     select
                     label='currency'
+                    name='currency'
                     className={classes.textField}
                     value={values.currency}
-                    onChange={handleChange('currency')}
+                    onChange={handleChange} //('currency')
                     SelectProps={{
                       MenuProps: {
                         className: classes.menu
@@ -228,8 +219,9 @@ function AuxiliaryMarket() {
                   <TextField
                     id='standard-number'
                     label='Amount'
+                    name='amount'
                     value={values.amount}
-                    onChange={handleChange('amount')}
+                    onChange={handleChange}
                     type='number'
                     className={classes.textField}
                     InputLabelProps={{
@@ -248,6 +240,7 @@ function AuxiliaryMarket() {
                 >
                   <Grid item xs={6} lg={5}>
                     <Button
+                      onClick={buy}
                       className={classes.greenBtn}
                       variant='contained'
                       fullWidth
@@ -258,6 +251,7 @@ function AuxiliaryMarket() {
                   </Grid>
                   <Grid item xs={6} lg={5}>
                     <Button
+                      onClick={sell}
                       className={classes.redBtn}
                       variant='contained'
                       fullWidth
@@ -287,40 +281,3 @@ function AuxiliaryMarket() {
 }
 
 export default AuxiliaryMarket;
-
-/* <ThemeProvider theme={theme}>
-      <div className='App'>
-        <h1>Asset Market</h1>
-        <Button variant='contained' color='primary'>
-          getCurrentPrice()
-        </Button>
-        <h3>{currentPrice}</h3>
-        <br />
-        <br />
-        <Button variant='contained' color='primary'>
-          getBalance()
-        </Button>
-        <h3>{zapBalance}</h3>
-        <br />
-        <br />
-        <Button variant='contained' color='primary'>
-          getAMTBalance()
-        </Button>
-        <h3>{amtBalance}</h3>
-        <br />
-        <br />
-        <Button variant='contained' color='primary'>
-          approve()
-        </Button>
-        <br />
-        <br />
-        <Button variant='contained' color='primary'>
-          buy()
-        </Button>
-        <br />
-        <br />
-        <Button variant='contained' color='primary'>
-          sell()
-        </Button>
-      </div>
-    </ThemeProvider> */
