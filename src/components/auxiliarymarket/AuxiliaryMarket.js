@@ -5,20 +5,18 @@ import {
   Grid,
   Paper,
   Button,
-  ButtonGroup,
   List,
   ListItem,
-  ListItemText,
   MenuItem,
   Typography,
   TextField
 } from '@material-ui/core';
 import { ThemeProvider } from '@material-ui/styles';
 import { makeStyles, createMuiTheme } from '@material-ui/core/styles';
-import { green, red, blue } from '@material-ui/core/colors';
-import Header from '../../components/header/Header';
+import Header from '../layout/Header';
 import AuxiliaryMarketContract from '../../ABI/AuxiliaryMarket.js';
 import AuxiliaryMarketTokenContract from '../../ABI/AuxiliaryMarketToken';
+import ZapTokenContract from '../../ABI/ZapToken';
 
 const useStyles = makeStyles(theme => ({
   grow: {
@@ -89,59 +87,79 @@ const currencies = [
 ];
 
 function AuxiliaryMarket() {
-  const [currentPrice, setCurrentPrice] = useState('current price');
   const [zapBalance, setZapBalance] = useState('zap balance');
   const [amtBalance, setAmtBalance] = useState('amt balance');
+  const [userAddress, setUserAddress] = useState('');
   const [values, setValues] = useState({
-    currency: 'AMT'
+    currency: 'AMT',
+    amount: ''
   });
+
+  useEffect(() => {
+    const initData = async () => {
+      let userAddress = await getAddress();
+      try {
+        setUserAddress(userAddress);
+        let amtBalance = await getAMTBalance();
+        setAmtBalance(amtBalance);
+        let zapBalance = await getZapBalance();
+        setZapBalance(zapBalance);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    initData();
+  }, [userAddress]);
 
   const classes = useStyles();
 
   //TODO: allow user to display in MMTwei or MMT
-  function getMMTBalance() {
-    return 2000000;
-  }
-
-  function getZapBalance() {
-    return 3000000;
-  }
-
-  const handleChange = name => event => {
-    setValues({ ...values, [name]: event.target.value });
-  };
-
-  const getCurrentPrice = async () => {
-    const auxad = await AuxiliaryMarketContract.address;
-    console.log(auxad);
-
-    const currentPrice = await AuxiliaryMarketContract.methods
-      .getCurrentPrice()
-      .call();
-
-    console.log(currentPrice.toString());
-  };
-
-  const getBalance = async _address => {
-    const accounts = await web3.eth.getAccounts();
-
-    var zapBalance = await AuxiliaryMarketContract.methods
-      .getBalance(accounts[0])
-      .call();
-
-    zapBalance = zapBalance.toString();
-    console.log(zapBalance);
-    return 10;
-  };
-
-  const getAMTBalance = async _owner => {
-    const accounts = await web3.eth.getAccounts();
-
+  const getAMTBalance = async () => {
     const amtBalance = await AuxiliaryMarketContract.methods
-      .getAMTBalance(accounts[0])
+      .getAMTBalance(userAddress)
       .call();
 
-    console.log(amtBalance.toString());
+    return amtBalance.toString();
+  };
+
+  const getZapBalance = async () => {
+    const zapBalance = await ZapTokenContract.methods
+      .balanceOf(userAddress)
+      .call();
+
+    return zapBalance.toString();
+  };
+
+  const getAddress = async () => {
+    let accounts = await web3.eth.getAccounts();
+    return accounts[0];
+  };
+
+  // const getAMTBalance = async _owner => {
+  //   const accounts = await web3.eth.getAccounts();
+
+  //   const amtBalance = await AuxiliaryMarketContract.methods
+  //     .getAMTBalance(accounts[0])
+  //     .call();
+
+  //   console.log(amtBalance.toString());
+  // };
+
+  // const getZapBalance = async _address => {
+  //   const accounts = await web3.eth.getAccounts();
+
+  //   var zapBalance = await AuxiliaryMarketContract.methods
+  //     .getBalance(accounts[0])
+  //     .call();
+
+  //   zapBalance = zapBalance.toString();
+  //   console.log(zapBalance);
+  //   return 10;
+  // };
+
+  const handleChange = event => {
+    setValues({ ...values, [event.target.name]: event.target.value });
+    console.log(values);
   };
 
   const approve = async () => {
@@ -154,17 +172,27 @@ function AuxiliaryMarket() {
       .catch(err => console.log(err));
   };
 
-  const buy = async _quantity => {
+  const buy = async () => {
     const accounts = await web3.eth.getAccounts();
 
-    // const totalWeiZap =
-    await AuxiliaryMarketContract.methods
-      .buy('5000')
-      .send({ from: accounts[0], gas: 126000 })
-      .then(receipt => console.log(receipt))
-      .catch(err => console.log(err));
+    AuxiliaryMarketContract.methods
+      .buy(values.amount)
+      .send({ from: userAddress, gas: 6620000 });
+    //.estimateGas({ from: userAddress })
+    //.then(gasAmount => console.log(gasAmount));
+    /*
+      just mint zap to aux market contract
+    */
 
-    //console.log(totalWeiZap);
+    let amtBalance = await getAMTBalance();
+
+    setAmtBalance(amtBalance);
+
+    // await AuxiliaryMarketContract.methods
+    //   .buy('5000')
+    //   .send({ from: accounts[0], gas: 126000 })
+    //   .then(receipt => console.log(receipt))
+    //   .catch(err => console.log(err));
   };
 
   const sell = async _quantity => {
@@ -192,9 +220,6 @@ function AuxiliaryMarket() {
         >
           <Grid item xs={12} sm={3}>
             <Paper>
-              <Button onClick={getBalance} color='primary' variant='contained'>
-                Test
-              </Button>
               <List>
                 <ListItem>
                   <Typography>AMT Balance: </Typography>
@@ -214,9 +239,10 @@ function AuxiliaryMarket() {
                     id='standard-select-currency'
                     select
                     label='currency'
+                    name='currency'
                     className={classes.textField}
                     value={values.currency}
-                    onChange={handleChange('currency')}
+                    onChange={handleChange} //('currency')
                     SelectProps={{
                       MenuProps: {
                         className: classes.menu
@@ -235,8 +261,9 @@ function AuxiliaryMarket() {
                   <TextField
                     id='standard-number'
                     label='Amount'
+                    name='amount'
                     value={values.amount}
-                    onChange={handleChange('amount')}
+                    onChange={handleChange}
                     type='number'
                     className={classes.textField}
                     InputLabelProps={{
@@ -255,6 +282,7 @@ function AuxiliaryMarket() {
                 >
                   <Grid item xs={6} lg={5}>
                     <Button
+                      onClick={buy}
                       className={classes.greenBtn}
                       variant='contained'
                       fullWidth
@@ -265,6 +293,7 @@ function AuxiliaryMarket() {
                   </Grid>
                   <Grid item xs={6} lg={5}>
                     <Button
+                      onClick={sell}
                       className={classes.redBtn}
                       variant='contained'
                       fullWidth
@@ -294,40 +323,3 @@ function AuxiliaryMarket() {
 }
 
 export default AuxiliaryMarket;
-
-/* <ThemeProvider theme={theme}>
-      <div className='App'>
-        <h1>Asset Market</h1>
-        <Button variant='contained' color='primary'>
-          getCurrentPrice()
-        </Button>
-        <h3>{currentPrice}</h3>
-        <br />
-        <br />
-        <Button variant='contained' color='primary'>
-          getBalance()
-        </Button>
-        <h3>{zapBalance}</h3>
-        <br />
-        <br />
-        <Button variant='contained' color='primary'>
-          getAMTBalance()
-        </Button>
-        <h3>{amtBalance}</h3>
-        <br />
-        <br />
-        <Button variant='contained' color='primary'>
-          approve()
-        </Button>
-        <br />
-        <br />
-        <Button variant='contained' color='primary'>
-          buy()
-        </Button>
-        <br />
-        <br />
-        <Button variant='contained' color='primary'>
-          sell()
-        </Button>
-      </div>
-    </ThemeProvider> */

@@ -19,7 +19,7 @@ import {
 import { ThemeProvider } from '@material-ui/styles';
 import { makeStyles, createMuiTheme } from '@material-ui/core/styles';
 import { green, red, blue } from '@material-ui/core/colors';
-import Header from '../../components/header/Header';
+import Header from '../layout/Header';
 
 const useStyles = makeStyles(theme => ({
   grow: {

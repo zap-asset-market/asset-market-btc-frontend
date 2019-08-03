@@ -1,19 +1,18 @@
 import React from 'react';
-import { makeStyles, createMuiTheme } from '@material-ui/core/styles';
-import { AppBar,
-        Button,
-        Toolbar,
-        IconButton, 
-        Typography, 
-        MenuItem,
-        Menu,
-        Link
-        }
-from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
+import {
+  AppBar,
+  Button,
+  Toolbar,
+  IconButton,
+  Typography,
+  MenuItem,
+  Menu,
+  Link
+} from '@material-ui/core';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import MoreIcon from '@material-ui/icons/MoreVert';
 import { Link as RouterLink } from 'react-router-dom';
-import { ThemeProvider } from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   grow: {
@@ -54,7 +53,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 
-export default function Header(props) {
+function Header(props) {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
@@ -77,10 +76,6 @@ export default function Header(props) {
 
   function handleMobileMenuOpen(event) {
     setMobileMoreAnchorEl(event.currentTarget);
-  }
-
-  function handleClick() {
-    
   }
 
   const menuId = 'primary-search-account-menu';
@@ -111,13 +106,13 @@ export default function Header(props) {
       onClose={handleMobileMenuClose}
     >
       <MenuItem>
-        <Link component={RouterLink} to='/mainMarket'>
+        <Link component={RouterLink} to='/MainMarket'>
           Main Market
         </Link>
       </MenuItem>
       <MenuItem>
-        <Link component={RouterLink} to='/auxMarket'>
-          Auxiliary markets 
+        <Link component={RouterLink} to='/AuxiliaryMarket'>
+          Auxiliary markets
         </Link>
       </MenuItem>
       <MenuItem onClick={handleProfileMenuOpen}>
@@ -151,7 +146,7 @@ export default function Header(props) {
                 color="secondary"
                 className={classes.toolbarLink}
                 component={RouterLink}
-                to='/mainMarket'
+                to='/MainMarket'
                 underline='none'
               >
                 Main Market
@@ -163,7 +158,7 @@ export default function Header(props) {
                 href="#text-buttons"
                 className={classes.toolbarLink}
                 component={RouterLink}
-                to='/auxMarket'
+                to='/AuxiliaryMarket'
                 underline='none'
               > 
                 auxiliary Market
@@ -198,3 +193,5 @@ export default function Header(props) {
     </React.Fragment>
   );
 }
+
+export default Header;
