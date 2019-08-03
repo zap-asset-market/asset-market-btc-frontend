@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import web3 from '../../web3.js';
+import MainMarketTokenContract from '../../ABI/MainMarketToken';
+import MainMarketContract from '../../ABI/MainMarket.js';
+import ZapTokenContract from '../../ABI/ZapToken.js';
 import {
   Divider,
   Grid,
@@ -54,7 +58,7 @@ const useStyles = makeStyles(theme => ({
 
 const theme = createMuiTheme({
   palette: {
-    type: 'dark'
+    type: 'dark',
   }
 });
 
@@ -93,27 +97,130 @@ const currencies = [
   }
 ];
 
-function MainMarket() {
-  const [mmThemeProvidertBalance, setMMtBalance] = useState(getMMTBalance);
-  const [values, setValues] = React.useState({
-    currency: 'mmt'
+function MainMarket() {  
+  //state of inputs
+  const [values, setValues] = useState({
+    currency: 'mmt',
+    mmtAmount: "",
+    mmtBal: 0,
+    zapAmount: "",  //amount user want to buy
+    depositedZap: 0, //zap user has in the exchange
+    userAddress: ""
   });
 
   const classes = useStyles();
 
-  //TODO: allow user to display in MMTwei or MMT
-  function getMMTBalance() {
-    return 2000000;
+  async function getAddress () {
+    let accounts = await web3.eth.getAccounts();
+    return accounts[0];
   }
 
-  function getZapBalance() {
-    return 3000000;
+  async function depositZap(){
+    const accounts = await web3.eth.getAccounts();
+
+    try {
+      //approve zap in order to deposit to main market
+      await ZapTokenContract.methods
+        .approve(MainMarketContract.options.address, values.zapAmount)
+        .send({from: accounts[0], gas:400000});
+
+      //tranfer zap to main market
+      await MainMarketContract.methods
+        .depositZap(values.zapAmount)
+        .send({ from: accounts[0] })
+    } catch (error) {
+      console.log(error);
+    }
+
+    //update new zapbalance
+    let depositedZap = await getZapBalance();
+    console.log("depositedZap: ", depositedZap);
+    setValues({...values, depositedZap: depositedZap});
+  }
+
+  //users mmt balance
+  async function getMMTBalance() {
+    // let accounts = await web3.eth.getAccounts();
+    console.log("userAddress: ", values.userAddress);
+    let mmtBal = await MainMarketContract.methods.getMMTBalance(values.userAddress).call();
+    return mmtBal.toString()
+  }
+
+
+  //return amount of zap user can spend in main market / amount of zap deposited in main market
+  async function getZapBalance() {
+    let deposited = await MainMarketContract.methods.getDepositedZap().call();
+    console.log("deposited: ", deposited.toString());
+    return deposited.toString();
+  }
+
+  async function sellMMT() {
+    console.log("selling mmt");
+    try {
+      //first approve main market to tranfeer main market token
+      await MainMarketTokenContract.methods
+      .approve(MainMarketContract.options.address,values.mmtAmount)
+      .send({from: values.userAddress, gas: 1000000});
+
+      console.log("approve successful");
+      //sell the mmt
+      await MainMarketContract.methods.unbond(values.mmtAmount).send({from: values.userAddress, gas: 1000000});
+
+      //update the state
+      //mmt should be less
+      let mmtBal = await getMMTBalance();
+
+      //zap balance should be more
+      let depositedZap = await getZapBalance();
+      setValues({...values, 'mmtBal': mmtBal, 'depositedZap': depositedZap});
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async function buyMMT() {
+    console.log("buy amount: ", values.mmtAmount);
+    try {
+      await MainMarketContract.methods
+      .bond(values.mmtAmount).send({from: values.userAddress, gas: 1000000})
+      // update mmtBal
+      let mmtBal = await getMMTBalance();
+      // deposit balance should've decreased
+      let depositedZap = await getZapBalance();
+      setValues({...values, 'mmtBal': mmtBal, 'depositedZap': depositedZap});
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   const handleChange = name => event => {
     setValues({ ...values, [name]: event.target.value });
   };
 
+  // Similar to componentDidMount and componentDidUpdate
+  useEffect(() => {
+    
+    const initData = async () => {
+      let userAddress = await getAddress();
+      //before anything we need to get the address
+      console.log("userAddress: ", userAddress);
+      setValues({...values, 'userAddress': userAddress});
+      console.log("values: ", values);
+      try {
+        let results = await Promise.all([getMMTBalance(), getZapBalance()])
+        setValues({ 
+          ...values,
+          'mmtBal':results[0],
+          'depositedZap': results[1]
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    initData();
+  }, [values.userAddress]);
+
+  console.log("values: ", values);
   return (
     <ThemeProvider theme={theme}>
       <div className='layout'>
@@ -130,92 +237,118 @@ function MainMarket() {
                 <ListItem>
                   <Typography>MMT Balance</Typography>
                   <div className={classes.grow} />
-                  <Typography variant='caption'>{getMMTBalance()}</Typography>
+                  <Typography variant='caption'>{values.mmtBal}</Typography>
                 </ListItem>
                 <ListItem>
                   <Typography>zap bal: </Typography>
                   <div className={classes.grow} />
-                  <Typography variant='caption'>{getZapBalance()}</Typography>
+                  <Typography variant='caption'>{values.depositedZap}</Typography>
                 </ListItem>
               </List>
-              <Divider light />
-              <ListItem>
-                <form className={classes.form}>
-                  <TextField
-                    id='standard-select-currency'
-                    select
-                    label='currency'
-                    className={classes.textField}
-                    value={values.currency}
-                    onChange={handleChange('currency')}
-                    SelectProps={{
-                      MenuProps: {
-                        className: classes.menu
-                      }
-                    }}
-                    helperText=''
-                    margin='normal'
-                  >
-                    {currencies.map(option => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
 
-                  <TextField
-                    id='standard-number'
-                    label='Amount'
-                    value={values.amount}
-                    onChange={handleChange('amount')}
-                    type='number'
-                    className={classes.textField}
-                    InputLabelProps={{
-                      shrink: true
-                    }}
-                    margin='normal'
-                  />
-                </form>
-              </ListItem>
-              <ListItem>
-                <Grid
-                  container
-                  justify='space-between'
-                  alignItems='stretch'
-                  spacing={1}
-                >
-                  <Grid item xs={6} lg={5}>
-                    <Button
-                      className={classes.greenBtn}
-                      variant='contained'
-                      fullWidth
-                      style={{ height: '100%' }}
+              <Divider light />
+              
+              <form className={classes.form}>
+                <ListItem>
+                    <TextField
+                      id='standard-select-currency'
+                      select
+                      label='currency'
+                      className={classes.textField}
+                      value={values.currency}
+                      onChange={handleChange('currency')}
+                      SelectProps={{
+                        MenuProps: {
+                          className: classes.menu
+                        }
+                      }}
+                      helperText=''
+                      margin='normal'
                     >
-                      Buy MMT
-                    </Button>
+                      {currencies.map(option => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+
+                    <TextField
+                      id='standard-number'
+                      label='Amount'
+                      placeholder='0'
+                      value={values.mmtAmount}
+                      onChange={handleChange('mmtAmount')}
+                      type='number'
+                      className={classes.textField}
+                      InputLabelProps={{
+                        shrink: true
+                      }}
+                      margin='normal'
+                    />
+                </ListItem>
+                <ListItem>
+                  <Grid
+                    container
+                    justify='space-between'
+                    alignItems='stretch'
+                    spacing={1}
+                  >
+                    <Grid item xs={6} lg={5}>
+                      <Button
+                        className={classes.greenBtn}
+                        variant='contained'
+                        fullWidth
+                        style={{ height: '100%' }}
+                        onClick={buyMMT}
+                      >
+                        Buy MMT/Bond
+                      </Button>
+                    </Grid>
+                    <Grid item xs={6} lg={5}>
+                      <Button
+                        className={classes.redBtn}
+                        variant='contained'
+                        fullWidth
+                        style={{ height: '100%' }}
+                        onClick={sellMMT}
+                      >
+                        Sell MMT
+                      </Button>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <Divider light />
+                    </Grid>
+                    <ListItem>
+                      <TextField
+                        id='standard-number'
+                        label='zap Amount'
+                        placeholder='0'
+                        value={values.zapAmount}
+                        onChange={handleChange('zapAmount')}
+                        type='number'
+                        className={classes.textField}
+                        InputLabelProps={{
+                          shrink: true
+                        }}
+                        margin='normal'
+                      />
+                    </ListItem>
+
+                    <Grid item xs={12}>
+                      <Button
+                        className={classes.blueBtn}
+                        variant='contained'
+                        fullWidth
+                        style={{ height: '100%' }}
+                        onClick={depositZap}
+                      >
+                        Depoisit Zap
+                      </Button>
+                    </Grid>
                   </Grid>
-                  <Grid item xs={6} lg={5}>
-                    <Button
-                      className={classes.redBtn}
-                      variant='contained'
-                      fullWidth
-                      style={{ height: '100%' }}
-                    >
-                      Sell MMT
-                    </Button>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Button
-                      className={classes.blueBtn}
-                      variant='contained'
-                      fullWidth
-                      style={{ height: '100%' }}
-                    >
-                      Depoisit Zap
-                    </Button>
-                  </Grid>
-                </Grid>
-              </ListItem>
+                </ListItem>
+              </form>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={9}>

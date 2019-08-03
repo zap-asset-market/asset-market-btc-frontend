@@ -4,10 +4,11 @@
 }
 
 .layout {
+
   min-height: 100vh;
   background-color: #000c18;
   /*there is a stutter when pressing buttons and it seem that adding padding fixes it.*/
-  padding: 10px;
+  /*padding: 10px;*/
 }
 
 h1,
