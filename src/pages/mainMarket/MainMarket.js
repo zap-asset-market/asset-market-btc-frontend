@@ -183,7 +183,7 @@ function MainMarket() {
     try {
       await MainMarketContract.methods
       .bond(values.mmtAmount).send({from: values.userAddress, gas: 1000000})
-      // // update mmtBal
+      // update mmtBal
       let mmtBal = await getMMTBalance();
       // deposit balance should've decreased
       let depositedZap = await getZapBalance();
