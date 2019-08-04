@@ -1,6 +1,5 @@
 import web3 from '../web3.js';
-
-const address = '0x6423eb8744bbD8f84fa87d7e0526846b70f9851c';
+import Addresses from './contractAddresses.json';
 
 const abi = [
   {
@@ -403,4 +402,6 @@ const abi = [
   }
 ];
 
-export default new web3.eth.Contract(abi, address);
+console.log("zap", Addresses.zapToken);
+
+export default new web3.eth.Contract(abi, Addresses.zapToken);

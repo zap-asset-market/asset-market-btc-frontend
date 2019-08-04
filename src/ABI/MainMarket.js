@@ -1,6 +1,5 @@
 import web3 from '../web3.js';
-
-const address = '0xEf3c71AA6F469f9954F8b57813198548EECD287e';
+import Addresses from './contractAddresses.json';
 
 const abi = [
     {
@@ -321,4 +320,4 @@ const abi = [
     }
   ];
 
-export default new web3.eth.Contract(abi, address);
+export default new web3.eth.Contract(abi, Addresses.mainMarket);
