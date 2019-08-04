@@ -87,8 +87,8 @@ const currencies = [
 ];
 
 function AuxiliaryMarket() {
-  const [zapBalance, setZapBalance] = useState('zap balance');
-  const [amtBalance, setAmtBalance] = useState('amt balance');
+  const [zapBalance, setZapBalance] = useState('Loading...');
+  const [amtBalance, setAmtBalance] = useState('Loading...');
   const [userAddress, setUserAddress] = useState('');
   const [values, setValues] = useState({
     currency: 'AMT',
@@ -109,9 +109,18 @@ function AuxiliaryMarket() {
       }
     };
     initData();
-  }, [userAddress]);
+  }, [userAddress, zapBalance, amtBalance]);
 
   const classes = useStyles();
+
+  const handleChange = event => {
+    setValues({ ...values, [event.target.name]: event.target.value });
+  };
+
+  const getAddress = async () => {
+    let accounts = await web3.eth.getAccounts();
+    return accounts[0];
+  };
 
   //TODO: allow user to display in MMTwei or MMT
   const getAMTBalance = async () => {
@@ -130,82 +139,41 @@ function AuxiliaryMarket() {
     return zapBalance.toString();
   };
 
-  const getAddress = async () => {
-    let accounts = await web3.eth.getAccounts();
-    return accounts[0];
-  };
-
-  // const getAMTBalance = async _owner => {
-  //   const accounts = await web3.eth.getAccounts();
-
-  //   const amtBalance = await AuxiliaryMarketContract.methods
-  //     .getAMTBalance(accounts[0])
-  //     .call();
-
-  //   console.log(amtBalance.toString());
-  // };
-
-  // const getZapBalance = async _address => {
-  //   const accounts = await web3.eth.getAccounts();
-
-  //   var zapBalance = await AuxiliaryMarketContract.methods
-  //     .getBalance(accounts[0])
-  //     .call();
-
-  //   zapBalance = zapBalance.toString();
-  //   console.log(zapBalance);
-  //   return 10;
-  // };
-
-  const handleChange = event => {
-    setValues({ ...values, [event.target.name]: event.target.value });
-    console.log(values);
-  };
-
-  const approve = async () => {
-    const accounts = await web3.eth.getAccounts();
-
-    await AuxiliaryMarketTokenContract.methods
-      .approve('0x90Cc8ff484fE2A1bABc5c100f96a4e5A53A84f21', '4000')
-      .send({ from: accounts[0] })
-      .then(receipt => console.log(receipt))
-      .catch(err => console.log(err));
-  };
-
   const buy = async () => {
-    const accounts = await web3.eth.getAccounts();
-
-    AuxiliaryMarketContract.methods
+    await AuxiliaryMarketContract.methods
       .buy(values.amount)
       .send({ from: userAddress, gas: 6620000 });
     //.estimateGas({ from: userAddress })
     //.then(gasAmount => console.log(gasAmount));
-    /*
-      just mint zap to aux market contract
-    */
 
     let amtBalance = await getAMTBalance();
 
     setAmtBalance(amtBalance);
-
-    // await AuxiliaryMarketContract.methods
-    //   .buy('5000')
-    //   .send({ from: accounts[0], gas: 126000 })
-    //   .then(receipt => console.log(receipt))
-    //   .catch(err => console.log(err));
   };
 
-  const sell = async _quantity => {
-    const accounts = await web3.eth.getAccounts();
+  const sell = async () => {
+    let approvedAmount = parseInt(values.amount);
 
-    // const totalWeiZap =
+    AuxiliaryMarketTokenContract.methods.approve(
+      AuxiliaryMarketContract.address,
+      approvedAmount
+    );
+
     await AuxiliaryMarketContract.methods
-      .sell('4000')
-      .send({ from: accounts[0], gas: 300000 })
-      .then(receipt => console.log(receipt))
-      .catch(err => console.log(err));
+      .sell(values.amount)
+      .send({ from: userAddress, gas: 30000 });
+    // .estimateGas({ from: userAddress })
+    //   .then(gasAmount => console.log(gasAmount));
 
-    //console.log(totalWeiZap);
+    let amtBalance = await getAMTBalance();
+    console.log(amtBalance);
+
+    setAmtBalance(amtBalance);
+    // await AuxiliaryMarketContract.methods
+    //   .sell('4000')
+    //   .send({ from: accounts[0], gas: 300000 })
+    //   .then(receipt => console.log(receipt))
+    //   .catch(err => console.log(err));
   };
 
   return (
