@@ -109,12 +109,16 @@ function AuxiliaryMarket() {
       }
     };
     initData();
-  }, [userAddress, zapBalance, amtBalance]);
+  }); //[userAddress, zapBalance, amtBalance]
 
   const classes = useStyles();
 
   const handleChange = event => {
     setValues({ ...values, [event.target.name]: event.target.value });
+  };
+
+  const timeout = ms => {
+    return new Promise(resolve => setTimeout(resolve, ms));
   };
 
   const getAddress = async () => {
@@ -128,7 +132,9 @@ function AuxiliaryMarket() {
       .getAMTBalance(userAddress)
       .call();
 
-    return amtBalance.toString();
+    let amt = web3.utils.fromWei(amtBalance, 'ether');
+
+    return amt;
   };
 
   const getZapBalance = async () => {
@@ -136,7 +142,9 @@ function AuxiliaryMarket() {
       .balanceOf(userAddress)
       .call();
 
-    return zapBalance.toString();
+    let zap = web3.utils.fromWei(zapBalance, 'ether');
+
+    return zap;
   };
 
   const buy = async () => {
@@ -146,24 +154,33 @@ function AuxiliaryMarket() {
     //.estimateGas({ from: userAddress })
     //.then(gasAmount => console.log(gasAmount));
 
-    let amtBalance = await getAMTBalance();
+    await timeout(4000);
+
+    var amtBalance = await getAMTBalance();
+    console.log(amtBalance);
 
     setAmtBalance(amtBalance);
   };
 
   const sell = async () => {
-    let approvedAmount = parseInt(values.amount);
+    let approvedAmount = values.amount + '0';
 
     AuxiliaryMarketTokenContract.methods.approve(
       AuxiliaryMarketContract.address,
       approvedAmount
     );
 
-    await AuxiliaryMarketContract.methods
-      .sell(values.amount)
-      .send({ from: userAddress, gas: 30000 });
+    console.log(approvedAmount);
+    console.log(userAddress);
+    console.log(values.amount);
+
+    await AuxiliaryMarketContract.methods.sell(values.amount).send({
+      from: userAddress,
+      gas: 400000
+    });
     // .estimateGas({ from: userAddress })
     //   .then(gasAmount => console.log(gasAmount));
+    await timeout(4000);
 
     let amtBalance = await getAMTBalance();
     console.log(amtBalance);
@@ -186,104 +203,95 @@ function AuxiliaryMarket() {
           spacing={2}
           justify='space-around'
         >
-          <Grid item xs={12} sm={3}>
-            <Paper>
-              <List>
-                <ListItem>
-                  <Typography>AMT Balance: </Typography>
-                  <div className={classes.grow} />
-                  <Typography variant='caption'>{amtBalance}</Typography>
-                </ListItem>
-                <ListItem>
-                  <Typography>Zap Balance: </Typography>
-                  <div className={classes.grow} />
-                  <Typography variant='caption'>{zapBalance}</Typography>
-                </ListItem>
-              </List>
-              <Divider light />
+          {/* <Grid item xs={10} sm={3}> */}
+          <Paper>
+            <List>
               <ListItem>
-                <form className={classes.form}>
-                  <TextField
-                    id='standard-select-currency'
-                    select
-                    label='currency'
-                    name='currency'
-                    className={classes.textField}
-                    value={values.currency}
-                    onChange={handleChange} //('currency')
-                    SelectProps={{
-                      MenuProps: {
-                        className: classes.menu
-                      }
-                    }}
-                    helperText=''
-                    margin='normal'
-                  >
-                    {currencies.map(option => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-
-                  <TextField
-                    id='standard-number'
-                    label='Amount'
-                    name='amount'
-                    value={values.amount}
-                    onChange={handleChange}
-                    type='number'
-                    className={classes.textField}
-                    InputLabelProps={{
-                      shrink: true
-                    }}
-                    margin='normal'
-                  />
-                </form>
+                <Typography>AMT: </Typography>
+                <div className={classes.grow} />
+                <Typography variant='caption'>{amtBalance}</Typography>
               </ListItem>
               <ListItem>
-                <Grid
-                  container
-                  justify='space-between'
-                  alignItems='stretch'
-                  spacing={1}
+                <Typography>ZAP: </Typography>
+                <div className={classes.grow} />
+                <Typography variant='caption'>{zapBalance}</Typography>
+              </ListItem>
+            </List>
+            <Divider light />
+            <ListItem>
+              <form className={classes.form}>
+                <TextField
+                  id='standard-select-currency'
+                  select
+                  label='Currency'
+                  name='currency'
+                  className={classes.textField}
+                  value={values.currency}
+                  onChange={handleChange} //('currency')
+                  SelectProps={{
+                    MenuProps: {
+                      className: classes.menu
+                    }
+                  }}
+                  helperText=''
+                  margin='normal'
                 >
-                  <Grid item xs={6} lg={5}>
-                    <Button
-                      onClick={buy}
-                      className={classes.greenBtn}
-                      variant='contained'
-                      fullWidth
-                      style={{ height: '100%' }}
-                    >
-                      Buy AMT
-                    </Button>
-                  </Grid>
-                  <Grid item xs={6} lg={5}>
-                    <Button
-                      onClick={sell}
-                      className={classes.redBtn}
-                      variant='contained'
-                      fullWidth
-                      style={{ height: '100%' }}
-                    >
-                      Sell AMT
-                    </Button>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Button
-                      className={classes.blueBtn}
-                      variant='contained'
-                      fullWidth
-                      style={{ height: '100%' }}
-                    >
-                      Deposit Zap
-                    </Button>
-                  </Grid>
+                  {currencies.map(option => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+
+                <TextField
+                  id='standard-number'
+                  label='Amount In Wei'
+                  name='amount'
+                  value={values.amount}
+                  onChange={handleChange}
+                  type='number'
+                  className={classes.textField}
+                  InputLabelProps={{
+                    shrink: true
+                  }}
+                  margin='normal'
+                />
+              </form>
+            </ListItem>
+            <ListItem>
+              <Grid
+                container
+                justify='space-between'
+                alignItems='stretch'
+                spacing={1}
+              >
+                <Grid item xs={6} lg={5}>
+                  <Button
+                    onClick={buy}
+                    className={classes.greenBtn}
+                    variant='contained'
+                    fullWidth
+                    style={{ height: '100%' }}
+                  >
+                    Buy AMT
+                  </Button>
                 </Grid>
-              </ListItem>
-            </Paper>
-          </Grid>
+                <Grid item xs={6} lg={5}>
+                  <Button
+                    onClick={sell}
+                    className={classes.redBtn}
+                    variant='contained'
+                    fullWidth
+                    style={{ height: '100%' }}
+                  >
+                    Sell AMT
+                  </Button>
+                </Grid>
+                <Grid item xs={12} />
+              </Grid>
+            </ListItem>
+          </Paper>
+          {/* </Grid> */}
         </Grid>
       </div>
     </ThemeProvider>
