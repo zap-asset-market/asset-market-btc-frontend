@@ -20,6 +20,7 @@ import { ThemeProvider } from '@material-ui/styles';
 import { makeStyles, createMuiTheme } from '@material-ui/core/styles';
 import { green, red, blue } from '@material-ui/core/colors';
 import Header from '../layout/Header';
+import MainMarketChart from '../mainmarketChart/MainMarketChart';
 
 const useStyles = makeStyles(theme => ({
   grow: {
@@ -114,19 +115,20 @@ function MainMarket() {
     let accounts = await web3.eth.getAccounts();
     return accounts[0];
   }
-
   async function depositZap(){
     const accounts = await web3.eth.getAccounts();
+
+    let amountInWei = web3.utils.toWei(values.zapAmount, 'ether')
 
     try {
       //approve zap in order to deposit to main market
       await ZapTokenContract.methods
-        .approve(MainMarketContract.options.address, values.zapAmount)
+        .approve(MainMarketContract.options.address, amountInWei)
         .send({from: accounts[0], gas:400000});
 
       //tranfer zap to main market
       await MainMarketContract.methods
-        .depositZap(values.zapAmount)
+        .depositZap(amountInWei)
         .send({ from: accounts[0] })
     } catch (error) {
       console.log(error);
@@ -134,14 +136,11 @@ function MainMarket() {
 
     //update new zapbalance
     let depositedZap = await getZapBalance();
-    console.log("depositedZap: ", depositedZap);
     setValues({...values, depositedZap: depositedZap});
   }
 
   //users mmt balance
   async function getMMTBalance() {
-    // let accounts = await web3.eth.getAccounts();
-    console.log("userAddress: ", values.userAddress);
     let mmtBal = await MainMarketContract.methods.getMMTBalance(values.userAddress).call();
     return mmtBal.toString()
   }
@@ -150,19 +149,18 @@ function MainMarket() {
   //return amount of zap user can spend in main market / amount of zap deposited in main market
   async function getZapBalance() {
     let deposited = await MainMarketContract.methods.getDepositedZap().call();
-    console.log("deposited: ", deposited.toString());
-    return deposited.toString();
+    // convert from weizap to zap
+    let depositedInZap = web3.utils.fromWei(deposited, 'ether');
+    return depositedInZap;
   }
 
   async function sellMMT() {
-    console.log("selling mmt");
     try {
-      //first approve main market to tranfeer main market token
+      //first approve main market to tranfer main market token
       await MainMarketTokenContract.methods
       .approve(MainMarketContract.options.address,values.mmtAmount)
       .send({from: values.userAddress, gas: 1000000});
 
-      console.log("approve successful");
       //sell the mmt
       await MainMarketContract.methods.unbond(values.mmtAmount).send({from: values.userAddress, gas: 1000000});
 
@@ -179,7 +177,6 @@ function MainMarket() {
   }
 
   async function buyMMT() {
-    console.log("buy amount: ", values.mmtAmount);
     try {
       await MainMarketContract.methods
       .bond(values.mmtAmount).send({from: values.userAddress, gas: 1000000})
@@ -203,9 +200,7 @@ function MainMarket() {
     const initData = async () => {
       let userAddress = await getAddress();
       //before anything we need to get the address
-      console.log("userAddress: ", userAddress);
       setValues({...values, 'userAddress': userAddress});
-      console.log("values: ", values);
       try {
         let results = await Promise.all([getMMTBalance(), getZapBalance()])
         setValues({ 
@@ -220,7 +215,6 @@ function MainMarket() {
     initData();
   }, [values.userAddress]);
 
-  console.log("values: ", values);
   return (
     <ThemeProvider theme={theme}>
       <div className='layout'>
@@ -352,7 +346,9 @@ function MainMarket() {
             </Paper>
           </Grid>
           <Grid item xs={12} sm={9}>
-            <Paper>show curve</Paper>
+            <Paper>
+              <MainMarketChart/>
+            </Paper>
           </Grid>
         </Grid>
       </div>

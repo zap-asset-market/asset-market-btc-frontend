@@ -1,6 +1,5 @@
 import web3 from '../web3.js';
-
-const address = '0xEf3c71AA6F469f9954F8b57813198548EECD287e';
+import Addresses from './contractAddresses.json';
 
 const abi = [
     {
@@ -30,6 +29,25 @@ const abi = [
         {
           "name": "",
           "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "curve1",
+      "outputs": [
+        {
+          "name": "",
+          "type": "int256"
         }
       ],
       "payable": false,
@@ -144,6 +162,30 @@ const abi = [
       "payable": false,
       "stateMutability": "nonpayable",
       "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "dots",
+          "type": "uint256"
+        }
+      ],
+      "name": "Bonded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "dots",
+          "type": "uint256"
+        }
+      ],
+      "name": "Unbonded",
+      "type": "event"
     },
     {
       "constant": false,
@@ -284,6 +326,20 @@ const abi = [
     },
     {
       "constant": false,
+      "inputs": [],
+      "name": "getCurve",
+      "outputs": [
+        {
+          "name": "",
+          "type": "int256[]"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
       "inputs": [
         {
           "name": "amount",
@@ -319,6 +375,5 @@ const abi = [
       "stateMutability": "nonpayable",
       "type": "function"
     }
-  ];
-
-export default new web3.eth.Contract(abi, address);
+  ]
+export default new web3.eth.Contract(abi, Addresses.mainMarket);

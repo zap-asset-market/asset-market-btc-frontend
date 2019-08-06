@@ -4,10 +4,11 @@ const options = {
   transactionConfirmationBlocks: 1
 };
 
-let web3Provider = new Web3.providers.HttpProvider('http://127.0.0.1:9545/');
+// let web3Provider = new Web3.providers.HttpProvider('http://127.0.0.1:9545/');
 
-const web3 = new Web3(web3Provider, null, options);
+// const web3 = new Web3(web3Provider, null, options);
 
+const web3 = new Web3("ws://localhost:9545");
 // Modern dapp browsers...
 // if (window.ethereum) {
 //   App.web3Provider = window.ethereum;
