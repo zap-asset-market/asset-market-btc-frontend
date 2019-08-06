@@ -46,10 +46,13 @@ const useStyles = makeStyles(theme => ({
   transparent: {
     background: 'transparent',
     boxShadow: 'none'
+  },
+  appBar: {
+    backgroundColor: theme.palette.background.paper
   }
 }));
 
-function Header() {
+function Header(props) {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
@@ -117,40 +120,48 @@ function Header() {
     </Menu>
   );
 
+  //dynamically make the app bar transparant
+  let barClass;
+  if (props.transparent) {
+    barClass = classes.transparent;
+  } else {
+    barClass = classes.appBar;
+  }
+
   return (
     <React.Fragment>
-      <AppBar className={classes.transparent} position='static'>
+      <AppBar className={barClass} position='static'>
         <Toolbar>
-          <Link component={RouterLink} underline='none' to='/'>
+          <Link component={RouterLink} to='/' underline='none'>
             <Typography variant='h4' className={classes.title} noWrap>
               Asset Market
             </Typography>
           </Link>
           <div className={classes.grow} />
           <div className={classes.sectionDesktop}>
-            {/* <Button> */}
-            <Link
-              color='secondary'
-              className={classes.toolbarLink}
-              component={RouterLink}
-              to='/MainMarket'
-              underline='none'
-            >
-              Main Market
-            </Link>
-            {/* </Button> */}
-            {/* <Button> */}
-            <Link
-              color='inherit'
-              href='#text-buttons'
-              className={classes.toolbarLink}
-              component={RouterLink}
-              to='/AuxiliaryMarket'
-              underline='none'
-            >
-              Auxiliary Market
-            </Link>
-            {/* </Button> */}
+            <Button>
+              <Link
+                color='secondary'
+                className={classes.toolbarLink}
+                component={RouterLink}
+                to='/MainMarket'
+                underline='none'
+              >
+                Main Market
+              </Link>
+            </Button>
+            <Button>
+              <Link
+                color='inherit'
+                href='#text-buttons'
+                className={classes.toolbarLink}
+                component={RouterLink}
+                to='/AuxiliaryMarket'
+                underline='none'
+              >
+                auxiliary Market
+              </Link>
+            </Button>
             <IconButton
               edge='end'
               aria-label='Account of current user'
