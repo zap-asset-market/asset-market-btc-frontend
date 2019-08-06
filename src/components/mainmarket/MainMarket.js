@@ -20,6 +20,7 @@ import { ThemeProvider } from '@material-ui/styles';
 import { makeStyles, createMuiTheme } from '@material-ui/core/styles';
 import { green, red, blue } from '@material-ui/core/colors';
 import Header from '../layout/Header';
+import MainMarketChart from '../mainmarketChart/MainMarketChart';
 
 const useStyles = makeStyles(theme => ({
   grow: {
@@ -140,7 +141,6 @@ function MainMarket() {
 
   //users mmt balance
   async function getMMTBalance() {
-    console.log("userAddress: ", values.userAddress);
     let mmtBal = await MainMarketContract.methods.getMMTBalance(values.userAddress).call();
     return mmtBal.toString()
   }
@@ -155,14 +155,12 @@ function MainMarket() {
   }
 
   async function sellMMT() {
-    console.log("selling mmt");
     try {
       //first approve main market to tranfer main market token
       await MainMarketTokenContract.methods
       .approve(MainMarketContract.options.address,values.mmtAmount)
       .send({from: values.userAddress, gas: 1000000});
 
-      console.log("approve successful");
       //sell the mmt
       await MainMarketContract.methods.unbond(values.mmtAmount).send({from: values.userAddress, gas: 1000000});
 
@@ -202,9 +200,7 @@ function MainMarket() {
     const initData = async () => {
       let userAddress = await getAddress();
       //before anything we need to get the address
-      console.log("userAddress: ", userAddress);
       setValues({...values, 'userAddress': userAddress});
-      console.log("values: ", values);
       try {
         let results = await Promise.all([getMMTBalance(), getZapBalance()])
         setValues({ 
@@ -350,7 +346,9 @@ function MainMarket() {
             </Paper>
           </Grid>
           <Grid item xs={12} sm={9}>
-            <Paper>show curve</Paper>
+            <Paper>
+              <MainMarketChart/>
+            </Paper>
           </Grid>
         </Grid>
       </div>

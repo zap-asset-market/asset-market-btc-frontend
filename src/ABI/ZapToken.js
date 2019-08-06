@@ -402,6 +402,4 @@ const abi = [
   }
 ];
 
-console.log("zap", Addresses.zapToken);
-
 export default new web3.eth.Contract(abi, Addresses.zapToken);
