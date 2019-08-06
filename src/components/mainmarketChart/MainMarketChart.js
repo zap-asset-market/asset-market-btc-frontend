@@ -1,23 +1,34 @@
 import React, {useState, useEffect} from 'react';
-import MainMarketContract from '../../ABI/MainMarket'
-import BondageContract from '../../ABI/Bondage'
-
-MainMarketContract.events.Bonded({fromBlock: 0},(error, res) => {
-	if (error) {
-		console.log(error);
-	} else {
-		console.log('res ', res.returnValues.dots);
-		//todo: push result to data array
-	}
-})
+import MainMarketContract from '../../ABI/MainMarket';
+import BondageContract from '../../ABI/Bondage';
+import Chart from 'chart.js';
 
 function MainMarketChart() {
+	MainMarketContract.events.Bonded({fromBlock: 0},(error, res) => {
+		if (error) {
+			console.log(error);
+		} else {
+			console.log('res ', res.returnValues.dots);
+			// setDotData(dotData.push())
+			//or
+			//appendDatt(res.return.dots);
+		}
+	})
+	
 	const [dotCount, setDotCount] = useState(getTotalBonded());
-	const [dotData, setDotData] = useState([]);
 
-	useState(() => {
-		displayChart();
-	});
+	//an array of coordiante of dot to cost pair
+	const [dotData, setDotData] = useState([{x:0,y:0}]);
+
+	useEffect(() => {
+		// const initData = async () => {
+		// 	await parseCurveToData();
+		// 	console.log("data: ", dotData);
+		// 	displayChart();
+		// }
+		// initData();
+	},[dotData]);
+	parseCurveToData();
 
 	// given a number and and array of coefficents returns the output
 	// example if coeff = [3,1,5] it will calculate: num*3^0 + num*1^1 + num*5^2
@@ -32,6 +43,27 @@ function MainMarketChart() {
 
 
 	async function displayChart () {
+		var ctx = document.getElementById('myChart').getContext('2d');
+		var chart = new Chart(ctx, {
+		    // The type of chart we want to create
+		    type: 'line',
+
+		    // The data for our dataset
+		    data: {
+		        datasets: [{
+		            label: 'Bonding curve',
+		            backgroundColor: 'rgb(255, 99, 132)',
+		            borderColor: 'rgb(255, 99, 132)',
+		            data: dotData
+		        }]
+		    },
+
+		    // Configuration options go here
+		    options: {}
+		});
+	}
+
+	async function parseCurveToData() {
 		let curve = await MainMarketContract.methods.getCurve().call();
 		let data = [];
 
@@ -57,7 +89,13 @@ function MainMarketChart() {
 			start = upperBound;
 		}
 		console.log("data: ", data);
-		//Todo: plugin data to chart
+
+		let mockData = [
+			{x:0,y:1},
+			{x:2,y:2}
+		];
+
+		setDotData(mockData);
 	}
 	
 	async function getTotalBonded() {
@@ -68,9 +106,7 @@ function MainMarketChart() {
 	}
 
 	return(
-		<div>
-			chart
-		</div>
+		<canvas id="myChart"></canvas>
 	);
 }
 
