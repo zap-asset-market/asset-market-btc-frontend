@@ -22,6 +22,10 @@ const useStyles = makeStyles(theme => ({
   grow: {
     flexGrow: 1
   },
+  paper: {
+    marginBottom: 25,
+    textAlign: 'center'
+  },
   textField: {
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1)
@@ -87,9 +91,12 @@ const currencies = [
 ];
 
 function AuxiliaryMarket() {
+  const [userAddress, setUserAddress] = useState('');
   const [zapBalance, setZapBalance] = useState('Loading...');
   const [amtBalance, setAmtBalance] = useState('Loading...');
-  const [userAddress, setUserAddress] = useState('');
+  const [zapBTC, setZapBTC] = useState('--');
+  const [zapETH, setZapETH] = useState('--');
+  const [zapUSD, setZapUSD] = useState('--');
   const [values, setValues] = useState({
     currency: 'AMT',
     amount: ''
@@ -109,7 +116,7 @@ function AuxiliaryMarket() {
       }
     };
     initData();
-  }); //[userAddress, zapBalance, amtBalance]
+  }, [userAddress, zapBalance, amtBalance]);
 
   const classes = useStyles();
 
@@ -153,39 +160,46 @@ function AuxiliaryMarket() {
       .send({ from: userAddress, gas: 6620000 });
     //.estimateGas({ from: userAddress })
     //.then(gasAmount => console.log(gasAmount));
+    setAmtBalance('processing transaction...');
 
-    await timeout(4000);
+    // await timeout(5000);
 
-    var amtBalance = await getAMTBalance();
-    console.log(amtBalance);
+    const amtBalance = await AuxiliaryMarketContract.methods
+      .getAMTBalance(userAddress)
+      .call();
 
-    setAmtBalance(amtBalance);
+    let amt = web3.utils.fromWei(amtBalance, 'ether');
+
+    console.log(amt);
+
+    setAmtBalance(amt);
   };
 
   const sell = async () => {
     let approvedAmount = values.amount + '0';
-
-    AuxiliaryMarketTokenContract.methods.approve(
-      AuxiliaryMarketContract.address,
-      approvedAmount
-    );
-
-    console.log(approvedAmount);
-    console.log(userAddress);
-    console.log(values.amount);
-
+    console.log(AuxiliaryMarketContract.options.address);
+    await AuxiliaryMarketTokenContract.methods
+      .approve(AuxiliaryMarketContract.options.address, approvedAmount)
+      .send({
+        from: userAddress,
+        gas: 400000
+      });
     await AuxiliaryMarketContract.methods.sell(values.amount).send({
       from: userAddress,
       gas: 400000
     });
     // .estimateGas({ from: userAddress })
     //   .then(gasAmount => console.log(gasAmount));
-    await timeout(4000);
+    //await timeout(4000);
 
-    let amtBalance = await getAMTBalance();
-    console.log(amtBalance);
+    const amtBalance = await AuxiliaryMarketContract.methods
+      .getAMTBalance(userAddress)
+      .call();
 
-    setAmtBalance(amtBalance);
+    let amt = web3.utils.fromWei(amtBalance, 'ether');
+    console.log(amt);
+
+    setAmtBalance(amt);
     // await AuxiliaryMarketContract.methods
     //   .sell('4000')
     //   .send({ from: accounts[0], gas: 300000 })
@@ -203,6 +217,30 @@ function AuxiliaryMarket() {
           spacing={2}
           justify='space-around'
         >
+          <Grid container spacing={5}>
+            <Grid item xs>
+              <Paper className={classes.paper}>
+                <h2>ZAP/BTC</h2>
+                <Divider light />
+                <div style={{ padding: 25 }}>{zapBTC}</div>
+              </Paper>
+            </Grid>
+            <Grid item xs>
+              <Paper className={classes.paper}>
+                <h2>ZAP/ETH</h2>
+                <Divider light />
+                <div style={{ padding: 25 }}>{zapETH}</div>
+              </Paper>
+            </Grid>
+            <Grid item xs>
+              <Paper className={classes.paper}>
+                <h2>ZAP/USD</h2>
+                <Divider light />
+                <div style={{ padding: 25 }}>{zapUSD}</div>
+              </Paper>
+            </Grid>
+          </Grid>
+
           {/* <Grid item xs={10} sm={3}> */}
           <Paper>
             <List>

@@ -121,36 +121,36 @@ function Header() {
     <React.Fragment>
       <AppBar className={classes.transparent} position='static'>
         <Toolbar>
-          <Link component={RouterLink} to='/'>
+          <Link component={RouterLink} underline='none' to='/'>
             <Typography variant='h4' className={classes.title} noWrap>
               Asset Market
             </Typography>
           </Link>
           <div className={classes.grow} />
           <div className={classes.sectionDesktop}>
-            <Button>
-              <Link
-                color='secondary'
-                className={classes.toolbarLink}
-                component={RouterLink}
-                to='/MainMarket'
-                underline='none'
-              >
-                Main Market
-              </Link>
-            </Button>
-            <Button>
-              <Link
-                color='inherit'
-                href='#text-buttons'
-                className={classes.toolbarLink}
-                component={RouterLink}
-                to='/AuxiliaryMarket'
-                underline='none'
-              >
-                auxiliary Market
-              </Link>
-            </Button>
+            {/* <Button> */}
+            <Link
+              color='secondary'
+              className={classes.toolbarLink}
+              component={RouterLink}
+              to='/MainMarket'
+              underline='none'
+            >
+              Main Market
+            </Link>
+            {/* </Button> */}
+            {/* <Button> */}
+            <Link
+              color='inherit'
+              href='#text-buttons'
+              className={classes.toolbarLink}
+              component={RouterLink}
+              to='/AuxiliaryMarket'
+              underline='none'
+            >
+              Auxiliary Market
+            </Link>
+            {/* </Button> */}
             <IconButton
               edge='end'
               aria-label='Account of current user'
