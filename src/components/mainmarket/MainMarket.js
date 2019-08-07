@@ -103,17 +103,20 @@ function MainMarket() {
   const [values, setValues] = useState({
     currency: 'mmt',
     mmtAmount: "",
-    mmtBal: 0,
     zapAmount: "",  //amount user want to buy
-    depositedZap: 0, //zap user has in the exchange
-    userAddress: ""
   });
+  const [userAddress, setUserAddress] = useState('');
+  const [mmtBal, setMmtBalance] = useState(0);
+  const [depositedZap, setDepositedBalance] = useState(0);
+
 
   const classes = useStyles();
 
   async function getAddress () {
     let accounts = await web3.eth.getAccounts();
-    return accounts[0];
+    // setValues({values, 'userAddress': accounts[0]});
+    setUserAddress(accounts[0])
+    // return accounts[0];
   }
   async function depositZap(){
     const accounts = await web3.eth.getAccounts();
@@ -130,19 +133,29 @@ function MainMarket() {
       await MainMarketContract.methods
         .depositZap(amountInWei)
         .send({ from: accounts[0] })
+      
+      //update new zapbalance
+      await getZapBalance();
     } catch (error) {
       console.log(error);
     }
 
-    //update new zapbalance
-    let depositedZap = await getZapBalance();
-    setValues({...values, depositedZap: depositedZap});
   }
 
   //users mmt balance
   async function getMMTBalance() {
-    let mmtBal = await MainMarketContract.methods.getMMTBalance(values.userAddress).call();
-    return mmtBal.toString()
+    if (userAddress === '') {
+      console.log("user addres not set");
+      return
+    }
+    try {
+      let mmtBal = await MainMarketContract.methods.getMMTBalance(userAddress).call();
+      console.log("mmtBal: ", mmtBal);
+      setMmtBalance(mmtBal);
+    } catch(error) {
+      console.log(error);
+    }
+    // return mmtBal.toString()
   }
 
 
@@ -151,7 +164,9 @@ function MainMarket() {
     let deposited = await MainMarketContract.methods.getDepositedZap().call();
     // convert from weizap to zap
     let depositedInZap = web3.utils.fromWei(deposited, 'ether');
-    return depositedInZap;
+    console.log("deposidet in zap ", depositedInZap);
+    setDepositedBalance(depositedInZap);
+    // return depositedInZap;
   }
 
   async function sellMMT() {
@@ -159,19 +174,15 @@ function MainMarket() {
       //first approve main market to tranfer main market token
       await MainMarketTokenContract.methods
       .approve(MainMarketContract.options.address,values.mmtAmount)
-      .send({from: values.userAddress, gas: 1000000});
+      .send({from: userAddress, gas: 1000000});
 
       //sell the mmt
-      await MainMarketContract.methods.unbond(values.mmtAmount).send({from: values.userAddress, gas: 1000000});
+      await MainMarketContract.methods.unbond(values.mmtAmount).send({from: userAddress, gas: 1000000});
 
       //update the state
-      //mmt should be less
-      let mmtBal = await getMMTBalance();
-
-      //zap balance should be more
-      let depositedZap = await getZapBalance();
-      setValues({...values, 'mmtBal': mmtBal, 'depositedZap': depositedZap});
-    } catch (error) {
+      await getMMTBalance();
+      await getZapBalance();
+    }catch (error) {
       console.log(error);
     }
   }
@@ -179,13 +190,12 @@ function MainMarket() {
   async function buyMMT() {
     try {
       await MainMarketContract.methods
-      .bond(values.mmtAmount).send({from: values.userAddress, gas: 1000000})
+      .bond(values.mmtAmount).send({from: userAddress, gas: 1000000})
       // update mmtBal
-      let mmtBal = await getMMTBalance();
+      await getMMTBalance();
       // deposit balance should've decreased
-      let depositedZap = await getZapBalance();
-      setValues({...values, 'mmtBal': mmtBal, 'depositedZap': depositedZap});
-    } catch (error) {
+      await getZapBalance();
+    }catch (error) {
       console.log(error);
     }
   }
@@ -196,24 +206,13 @@ function MainMarket() {
 
   // Similar to componentDidMount and componentDidUpdate
   useEffect(() => {
-    
     const initData = async () => {
-      let userAddress = await getAddress();
-      //before anything we need to get the address
-      setValues({...values, 'userAddress': userAddress});
-      try {
-        let results = await Promise.all([getMMTBalance(), getZapBalance()])
-        setValues({ 
-          ...values,
-          'mmtBal':results[0],
-          'depositedZap': results[1]
-        });
-      } catch (error) {
-        console.log(error);
-      }
+      await getAddress();
+      await getMMTBalance();
+      await getZapBalance();
     }
     initData();
-  }, [values.userAddress]);
+  }, [userAddress, mmtBal, depositedZap]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -231,12 +230,12 @@ function MainMarket() {
                 <ListItem>
                   <Typography>MMT Balance</Typography>
                   <div className={classes.grow} />
-                  <Typography variant='caption'>{values.mmtBal}</Typography>
+                  <Typography variant='caption'>{mmtBal}</Typography>
                 </ListItem>
                 <ListItem>
                   <Typography>zap bal: </Typography>
                   <div className={classes.grow} />
-                  <Typography variant='caption'>{values.depositedZap}</Typography>
+                  <Typography variant='caption'>{depositedZap}</Typography>
                 </ListItem>
               </List>
 
