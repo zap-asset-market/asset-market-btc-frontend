@@ -150,7 +150,6 @@ function MainMarket() {
     }
     try {
       let mmtBal = await MainMarketContract.methods.getMMTBalance(userAddress).call();
-      console.log("mmtBal: ", mmtBal);
       setMmtBalance(mmtBal);
     } catch(error) {
       console.log(error);
