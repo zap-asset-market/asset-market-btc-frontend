@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import web3 from '../../web3.js';
+import fromExponential from 'from-exponential';
 import {
   Divider,
   Grid,
@@ -16,10 +17,15 @@ import { makeStyles, createMuiTheme } from '@material-ui/core/styles';
 import Header from '../layout/Header';
 import AuxiliaryMarketContract from '../../ABI/AuxiliaryMarket.js';
 import AuxiliaryMarketTokenContract from '../../ABI/AuxiliaryMarketToken';
+import ZapTokenContract from '../../ABI/ZapToken';
 
 const useStyles = makeStyles(theme => ({
   grow: {
     flexGrow: 1
+  },
+  paper: {
+    marginBottom: 25,
+    textAlign: 'center'
   },
   textField: {
     marginLeft: theme.spacing(1),
@@ -59,26 +65,26 @@ const theme = createMuiTheme({
 });
 
 const currencies = [
-  {
-    value: 'USD',
-    label: '$'
-  },
-  {
-    value: 'BTC',
-    label: '฿'
-  },
-  {
-    value: 'WEI',
-    label: 'WEI'
-  },
-  {
-    value: 'ETH',
-    label: 'ETH'
-  },
-  {
-    value: 'ZAP',
-    label: 'ZAP'
-  },
+  // {
+  //   value: 'USD',
+  //   label: '$'
+  // },
+  // {
+  //   value: 'BTC',
+  //   label: '฿'
+  // },
+  // {
+  //   value: 'WEI',
+  //   label: 'WEI'
+  // },
+  // {
+  //   value: 'ETH',
+  //   label: 'ETH'
+  // },
+  // {
+  //   value: 'ZAP',
+  //   label: 'ZAP'
+  // },
   {
     value: 'AMT',
     label: 'AMT'
@@ -86,84 +92,182 @@ const currencies = [
 ];
 
 function AuxiliaryMarket() {
-  const [zapBalance, setZapBalance] = useState('zap balance');
-  const [amtBalance, setAmtBalance] = useState('amt balance');
+  const [userAddress, setUserAddress] = useState('');
+  const [zapBalance, setZapBalance] = useState('Loading...');
+  const [amtBalance, setAmtBalance] = useState('Loading...');
+  const [zapBTC, setZapBTC] = useState('--');
+  const [zapETH, setZapETH] = useState('--');
+  const [zapUSD, setZapUSD] = useState('--');
+  const [btcZAP, setBtcZAP] = useState('--');
+  const [ethZAP, setEthZAP] = useState('--');
+  const [usdZAP, setUsdZAP] = useState('--');
+
   const [values, setValues] = useState({
     currency: 'AMT',
     amount: ''
   });
 
+  useEffect(() => {
+    const initData = async () => {
+      let userAddress = await getAddress();
+      try {
+        setUserAddress(userAddress);
+        let amtBalance = await getAMTBalance();
+        setAmtBalance(amtBalance);
+        let zapBalance = await getZapBalance();
+        setZapBalance(zapBalance);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    initData();
+  }, [userAddress, zapBalance, amtBalance, usdZAP]);
+
   const classes = useStyles();
-
-  //TODO: allow user to display in MMTwei or MMT
-  function getAMTBalance() {
-    return 2000000;
-  }
-
-  // const getAMTBalance = async _owner => {
-  //   const accounts = await web3.eth.getAccounts();
-
-  //   const amtBalance = await AuxiliaryMarketContract.methods
-  //     .getAMTBalance(accounts[0])
-  //     .call();
-
-  //   console.log(amtBalance.toString());
-  // };
-
-  function getZapBalance() {
-    return 3000000;
-  }
-
-  // const getZapBalance = async _address => {
-  //   const accounts = await web3.eth.getAccounts();
-
-  //   var zapBalance = await AuxiliaryMarketContract.methods
-  //     .getBalance(accounts[0])
-  //     .call();
-
-  //   zapBalance = zapBalance.toString();
-  //   console.log(zapBalance);
-  //   return 10;
-  // };
 
   const handleChange = event => {
     setValues({ ...values, [event.target.name]: event.target.value });
-    console.log(values);
   };
 
-  const approve = async () => {
-    const accounts = await web3.eth.getAccounts();
+  const getAddress = async () => {
+    let accounts = await web3.eth.getAccounts();
+    return accounts[0];
+  };
+
+  //TODO: allow user to display in MMTwei or MMT
+  const getAMTBalance = async () => {
+    const amtBalance = await AuxiliaryMarketContract.methods
+      .getAMTBalance(userAddress)
+      .call();
+
+    let amt = web3.utils.fromWei(amtBalance, 'ether');
+
+    return amt;
+  };
+
+  const getZapBalance = async () => {
+    const zapBalance = await ZapTokenContract.methods
+      .balanceOf(userAddress)
+      .call();
+
+    let zap = web3.utils.fromWei(zapBalance, 'ether');
+
+    return zap;
+  };
+
+  const buy = async () => {
+    let amount = web3.utils.toWei(values.amount, 'ether');
+
+    let gas = await AuxiliaryMarketContract.methods
+      .buy(amount)
+      .estimateGas({ from: userAddress });
+
+    await AuxiliaryMarketContract.methods
+      .buy(amount)
+      .send({ from: userAddress, gas });
+
+    setAmtBalance('processing transaction...');
+    setZapBalance('processing transaction...');
+
+    AuxiliaryMarketContract.once(
+      'Bought',
+      { fromBlock: 'latest' },
+      (error, events) => {
+        if (error) {
+          console.log(error);
+        } else {
+          var amt = web3.utils.fromWei(events.returnValues.amt, 'ether');
+          setAmtBalance(amt);
+        }
+      }
+    );
+
+    AuxiliaryMarketContract.events.Results(
+      { fromBlock: 'latest' },
+      (error, events) => {
+        if (error) {
+          console.log(error);
+        } else {
+          setUsdZAP(events.returnValues.response3);
+          setZapUSD(1 / events.returnValues.response3);
+          setEthZAP(web3.utils.fromWei(events.returnValues.response1, 'ether'));
+          setZapETH(
+            1 / web3.utils.fromWei(events.returnValues.response1, 'ether')
+          );
+          setZapBTC(
+            web3.utils.fromWei(events.returnValues.response2, 'ether') /
+              web3.utils.fromWei(events.returnValues.response1, 'ether')
+          );
+          let bitzap =
+            web3.utils.fromWei(events.returnValues.response1, 'ether') /
+            web3.utils.fromWei(events.returnValues.response2, 'ether');
+
+          setBtcZAP(fromExponential(bitzap));
+        }
+      }
+    );
+  };
+
+  const sell = async () => {
+    let amount = web3.utils.toWei(values.amount, 'ether');
+
+    let approvedAmount = amount + '0';
 
     await AuxiliaryMarketTokenContract.methods
-      .approve('0x90Cc8ff484fE2A1bABc5c100f96a4e5A53A84f21', '4000')
-      .send({ from: accounts[0] })
-      .then(receipt => console.log(receipt))
-      .catch(err => console.log(err));
-  };
+      .approve(AuxiliaryMarketContract.options.address, approvedAmount)
+      .send({
+        from: userAddress,
+        gas: 400000
+      });
 
-  const buy = async _quantity => {
-    const accounts = await web3.eth.getAccounts();
+    let gas = await AuxiliaryMarketContract.methods
+      .sell(amount)
+      .estimateGas({ from: userAddress });
 
-    await AuxiliaryMarketContract.methods.buy(_quantity);
+    await AuxiliaryMarketContract.methods.sell(amount).send({
+      from: userAddress,
+      gas
+    });
 
-    // await AuxiliaryMarketContract.methods
-    //   .buy('5000')
-    //   .send({ from: accounts[0], gas: 126000 })
-    //   .then(receipt => console.log(receipt))
-    //   .catch(err => console.log(err));
-  };
+    setAmtBalance('processing transaction...');
+    setZapBalance('processing transaction...');
 
-  const sell = async _quantity => {
-    const accounts = await web3.eth.getAccounts();
+    AuxiliaryMarketContract.once(
+      'Sold',
+      { fromBlock: 'latest' },
+      (error, events) => {
+        if (error) {
+          console.log(error);
+        } else {
+          var amt = web3.utils.fromWei(events.returnValues.amt, 'ether');
+          setAmtBalance(amt);
+        }
+      }
+    );
 
-    // const totalWeiZap =
-    await AuxiliaryMarketContract.methods
-      .sell('4000')
-      .send({ from: accounts[0], gas: 300000 })
-      .then(receipt => console.log(receipt))
-      .catch(err => console.log(err));
-
-    //console.log(totalWeiZap);
+    AuxiliaryMarketContract.events.Results(
+      { fromBlock: 'latest' },
+      (error, events) => {
+        if (error) {
+          console.log(error);
+        } else {
+          setUsdZAP(events.returnValues.response3);
+          setZapUSD(1 / events.returnValues.response3);
+          setEthZAP(web3.utils.fromWei(events.returnValues.response1, 'ether'));
+          setZapETH(
+            1 / web3.utils.fromWei(events.returnValues.response1, 'ether')
+          );
+          setZapBTC(
+            web3.utils.fromWei(events.returnValues.response2, 'ether') /
+              web3.utils.fromWei(events.returnValues.response1, 'ether')
+          );
+          setBtcZAP(
+            web3.utils.fromWei(events.returnValues.response1, 'ether') /
+              web3.utils.fromWei(events.returnValues.response2, 'ether')
+          );
+        }
+      }
+    );
   };
 
   return (
@@ -176,104 +280,143 @@ function AuxiliaryMarket() {
           spacing={2}
           justify='space-around'
         >
-          <Grid item xs={12} sm={3}>
-            <Paper>
-              <List>
-                <ListItem>
-                  <Typography>AMT Balance: </Typography>
-                  <div className={classes.grow} />
-                  <Typography variant='caption'>{amtBalance}</Typography>
-                </ListItem>
-                <ListItem>
-                  <Typography>Zap Balance: </Typography>
-                  <div className={classes.grow} />
-                  <Typography variant='caption'>{zapBalance}</Typography>
-                </ListItem>
-              </List>
-              <Divider light />
-              <ListItem>
-                <form className={classes.form}>
-                  <TextField
-                    id='standard-select-currency'
-                    select
-                    label='currency'
-                    name='currency'
-                    className={classes.textField}
-                    value={values.currency}
-                    onChange={handleChange} //('currency')
-                    SelectProps={{
-                      MenuProps: {
-                        className: classes.menu
-                      }
-                    }}
-                    helperText=''
-                    margin='normal'
-                  >
-                    {currencies.map(option => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-
-                  <TextField
-                    id='standard-number'
-                    label='Amount'
-                    name='amount'
-                    value={values.amount}
-                    onChange={handleChange}
-                    type='number'
-                    className={classes.textField}
-                    InputLabelProps={{
-                      shrink: true
-                    }}
-                    margin='normal'
-                  />
-                </form>
-              </ListItem>
-              <ListItem>
-                <Grid
-                  container
-                  justify='space-between'
-                  alignItems='stretch'
-                  spacing={1}
-                >
-                  <Grid item xs={6} lg={5}>
-                    <Button
-                      onClick={buy}
-                      className={classes.greenBtn}
-                      variant='contained'
-                      fullWidth
-                      style={{ height: '100%' }}
-                    >
-                      Buy AMT
-                    </Button>
-                  </Grid>
-                  <Grid item xs={6} lg={5}>
-                    <Button
-                      onClick={sell}
-                      className={classes.redBtn}
-                      variant='contained'
-                      fullWidth
-                      style={{ height: '100%' }}
-                    >
-                      Sell AMT
-                    </Button>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Button
-                      className={classes.blueBtn}
-                      variant='contained'
-                      fullWidth
-                      style={{ height: '100%' }}
-                    >
-                      Deposit Zap
-                    </Button>
-                  </Grid>
-                </Grid>
-              </ListItem>
-            </Paper>
+          <Grid container spacing={5}>
+            <Grid item xs>
+              <Paper className={classes.paper}>
+                <h2>ZAP/BTC</h2>
+                <Divider light />
+                <div style={{ padding: 25 }}>{zapBTC}</div>
+              </Paper>
+            </Grid>
+            <Grid item xs>
+              <Paper className={classes.paper}>
+                <h2>ZAP/ETH</h2>
+                <Divider light />
+                <div style={{ padding: 25 }}>{zapETH}</div>
+              </Paper>
+            </Grid>
+            <Grid item xs>
+              <Paper className={classes.paper}>
+                <h2>ZAP/USD</h2>
+                <Divider light />
+                <div style={{ padding: 25 }}>{zapUSD}</div>
+              </Paper>
+            </Grid>
           </Grid>
+          <Grid container spacing={5}>
+            <Grid item xs>
+              <Paper className={classes.paper}>
+                <h2>BTC/ZAP</h2>
+                <Divider light />
+                <div style={{ padding: 25 }}>{btcZAP}</div>
+              </Paper>
+            </Grid>
+            <Grid item xs>
+              <Paper className={classes.paper}>
+                <h2>ETH/ZAP</h2>
+                <Divider light />
+                <div style={{ padding: 25 }}>{ethZAP}</div>
+              </Paper>
+            </Grid>
+            <Grid item xs>
+              <Paper className={classes.paper}>
+                <h2>USD/ZAP</h2>
+                <Divider light />
+                <div style={{ padding: 25 }}>{usdZAP}</div>
+              </Paper>
+            </Grid>
+          </Grid>
+
+          {/* <Grid item xs={10} sm={3}> */}
+          <Paper>
+            <List>
+              <ListItem>
+                <Typography>AMT: </Typography>
+                <div className={classes.grow} />
+                <Typography variant='caption'>{amtBalance}</Typography>
+              </ListItem>
+              <ListItem>
+                <Typography>ZAP: </Typography>
+                <div className={classes.grow} />
+                <Typography variant='caption'>{zapBalance}</Typography>
+              </ListItem>
+            </List>
+            <Divider light />
+            <ListItem>
+              <form className={classes.form}>
+                <TextField
+                  id='standard-select-currency'
+                  select
+                  label='currency'
+                  name='currency'
+                  className={classes.textField}
+                  placeholder='0'
+                  value={values.currency}
+                  onChange={handleChange} //('currency')
+                  SelectProps={{
+                    MenuProps: {
+                      className: classes.menu
+                    }
+                  }}
+                  helperText=''
+                  margin='normal'
+                >
+                  {currencies.map(option => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+
+                <TextField
+                  id='standard-number'
+                  label='Amount'
+                  name='amount'
+                  value={values.amount}
+                  onChange={handleChange}
+                  type='number'
+                  className={classes.textField}
+                  InputLabelProps={{
+                    shrink: true
+                  }}
+                  margin='normal'
+                />
+              </form>
+            </ListItem>
+            <ListItem>
+              <Grid
+                container
+                justify='space-between'
+                alignItems='stretch'
+                spacing={1}
+              >
+                <Grid item xs={6} lg={5}>
+                  <Button
+                    onClick={buy}
+                    className={classes.greenBtn}
+                    variant='contained'
+                    fullWidth
+                    style={{ height: '100%' }}
+                  >
+                    Buy AMT
+                  </Button>
+                </Grid>
+                <Grid item xs={6} lg={5}>
+                  <Button
+                    onClick={sell}
+                    className={classes.redBtn}
+                    variant='contained'
+                    fullWidth
+                    style={{ height: '100%' }}
+                  >
+                    Sell AMT
+                  </Button>
+                </Grid>
+                <Grid item xs={12} />
+              </Grid>
+            </ListItem>
+          </Paper>
+          {/* </Grid> */}
         </Grid>
       </div>
     </ThemeProvider>

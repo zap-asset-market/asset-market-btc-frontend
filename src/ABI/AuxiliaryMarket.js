@@ -1,6 +1,5 @@
 import web3 from '../web3.js';
-
-const address = '0x90Cc8ff484fE2A1bABc5c100f96a4e5A53A84f21';
+import Addresses from './contractAddresses.json';
 
 const abi = [
   {
@@ -126,6 +125,50 @@ const abi = [
     type: 'event'
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        name: 'sender',
+        type: 'address'
+      },
+      {
+        indexed: false,
+        name: 'totalWeiZap',
+        type: 'uint256'
+      },
+      {
+        indexed: false,
+        name: 'amt',
+        type: 'uint256'
+      }
+    ],
+    name: 'Bought',
+    type: 'event'
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        name: 'sender',
+        type: 'address'
+      },
+      {
+        indexed: false,
+        name: 'totalWeiZap',
+        type: 'uint256'
+      },
+      {
+        indexed: false,
+        name: 'amt',
+        type: 'uint256'
+      }
+    ],
+    name: 'Sold',
+    type: 'event'
+  },
+  {
     constant: false,
     inputs: [
       {
@@ -229,4 +272,4 @@ const abi = [
   }
 ];
 
-export default new web3.eth.Contract(abi, address);
+export default new web3.eth.Contract(abi, Addresses.auxiliaryMarket);
