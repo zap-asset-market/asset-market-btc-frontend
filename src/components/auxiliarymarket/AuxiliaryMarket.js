@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import web3 from '../../web3.js';
+import fromExponential from 'from-exponential';
 import {
   Divider,
   Grid,
@@ -156,7 +157,6 @@ function AuxiliaryMarket() {
 
   const buy = async () => {
     let amount = web3.utils.toWei(values.amount, 'ether');
-    console.log(amount);
 
     let gas = await AuxiliaryMarketContract.methods
       .buy(amount)
@@ -198,16 +198,11 @@ function AuxiliaryMarket() {
             web3.utils.fromWei(events.returnValues.response2, 'ether') /
               web3.utils.fromWei(events.returnValues.response1, 'ether')
           );
-          setBtcZAP(
+          let bitzap =
             web3.utils.fromWei(events.returnValues.response1, 'ether') /
-              web3.utils.fromWei(events.returnValues.response2, 'ether')
-          );
-          // console.log(
-          //   Number(
-          //     web3.utils.fromWei(events.returnValues.response1, 'ether') /
-          //       web3.utils.fromWei(events.returnValues.response2, 'ether')
-          //   ).toPrecision(5)
-          // );
+            web3.utils.fromWei(events.returnValues.response2, 'ether');
+
+          setBtcZAP(fromExponential(bitzap));
         }
       }
     );
@@ -215,7 +210,6 @@ function AuxiliaryMarket() {
 
   const sell = async () => {
     let amount = web3.utils.toWei(values.amount, 'ether');
-    console.log(amount);
 
     let approvedAmount = amount + '0';
 
@@ -353,9 +347,10 @@ function AuxiliaryMarket() {
                 <TextField
                   id='standard-select-currency'
                   select
-                  label='Currency'
+                  label='currency'
                   name='currency'
                   className={classes.textField}
+                  placeholder='0'
                   value={values.currency}
                   onChange={handleChange} //('currency')
                   SelectProps={{
