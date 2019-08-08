@@ -1,5 +1,5 @@
 import web3 from '../web3.js';
-import Addresses from "./contractAddresses.json";
+import Addresses from './contractAddresses.json';
 
 const abi = [
   {

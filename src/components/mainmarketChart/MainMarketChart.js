@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import MainMarketContract from '../../ABI/MainMarket';
 import BondageContract from '../../ABI/Bondage';
 import Chart from 'chart.js';
