@@ -369,8 +369,27 @@ const abi = [
           "type": "uint256"
         }
       ],
-      "name": "userWithDraw",
+      "name": "withdrawFunds",
       "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "dots",
+          "type": "uint256"
+        }
+      ],
+      "name": "zapForDots",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
       "payable": false,
       "stateMutability": "nonpayable",
       "type": "function"
