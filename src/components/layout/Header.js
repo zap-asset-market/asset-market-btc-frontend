@@ -16,26 +16,26 @@ import { Link as RouterLink } from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   grow: {
-    flexGrow: 1,
+    flexGrow: 1
   },
   title: {
     [theme.breakpoints.up('sm')]: {
       display: 'block',
       fontWeight: 100
     },
-  color: theme.palette.text.primary
+    color: theme.palette.text.primary
   },
   sectionDesktop: {
     display: 'none',
     [theme.breakpoints.up('md')]: {
-      display: 'flex',
-    },
+      display: 'flex'
+    }
   },
   sectionMobile: {
     display: 'flex',
     [theme.breakpoints.up('md')]: {
-      display: 'none',
-    },
+      display: 'none'
+    }
   },
   toolbarLink: {
     padding: theme.spacing(1),
@@ -43,7 +43,7 @@ const useStyles = makeStyles(theme => ({
     flexShrink: 0,
     color: theme.palette.text.primary
   },
-  transparent:{
+  transparent: {
     background: 'transparent',
     boxShadow: 'none'
   },
@@ -51,7 +51,6 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: theme.palette.background.paper
   }
 }));
-
 
 function Header(props) {
   const classes = useStyles();
@@ -116,7 +115,6 @@ function Header(props) {
         </Link>
       </MenuItem>
       <MenuItem onClick={handleProfileMenuOpen}>
-     
         <p>Profile</p>
       </MenuItem>
     </Menu>
@@ -125,63 +123,63 @@ function Header(props) {
   //dynamically make the app bar transparant
   let barClass;
   if (props.transparent) {
-    barClass =  classes.transparent; 
-  } else { 
+    barClass = classes.transparent;
+  } else {
     barClass = classes.appBar;
   }
 
   return (
     <React.Fragment>
-      <AppBar className={barClass} position="static">
+      <AppBar className={barClass} position='static'>
         <Toolbar>
           <Link component={RouterLink} to='/' underline='none'>
-            <Typography variant="h4" className={classes.title} noWrap>
+            <Typography variant='h4' className={classes.title} noWrap>
               Asset Market
             </Typography>
           </Link>
           <div className={classes.grow} />
           <div className={classes.sectionDesktop}>
-            <Button>
-              <Link
-                color="secondary"
-                className={classes.toolbarLink}
-                component={RouterLink}
-                to='/MainMarket'
-                underline='none'
-              >
-                Main Market
-              </Link>
-            </Button>
-            <Button>
-              <Link
-                color="inherit"
-                href="#text-buttons"
-                className={classes.toolbarLink}
-                component={RouterLink}
-                to='/AuxiliaryMarket'
-                underline='none'
-              > 
-                auxiliary Market
-              </Link>
-            </Button>
+            {/* <Button> */}
+            <Link
+              color='secondary'
+              className={classes.toolbarLink}
+              component={RouterLink}
+              to='/MainMarket'
+              underline='none'
+            >
+              Main Market
+            </Link>
+            {/* </Button> */}
+            {/* <Button> */}
+            <Link
+              color='inherit'
+              href='#text-buttons'
+              className={classes.toolbarLink}
+              component={RouterLink}
+              to='/AuxiliaryMarket'
+              underline='none'
+            >
+              Auxiliary Market
+            </Link>
+            {/* </Button> */}
             <IconButton
-              edge="end"
-              aria-label="Account of current user"
+              edge='end'
+              aria-label='Account of current user'
               aria-controls={menuId}
-              aria-haspopup="true"
+              aria-haspopup='true'
               onClick={handleProfileMenuOpen}
-              color="inherit"
+              color='inherit'
             >
               <AccountCircle />
             </IconButton>
           </div>
           <div className={classes.sectionMobile}>
             <IconButton
-              aria-label="Show more"
+              aria-label='Show more'
               aria-controls={mobileMenuId}
-              aria-haspopup="true"
+              aria-haspopup='true'
               onClick={handleMobileMenuOpen}
-              color="inherit"
+              color='inherit'
             >
               <MoreIcon />
             </IconButton>
