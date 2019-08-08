@@ -3,40 +3,41 @@ import MainMarketContract from '../../ABI/MainMarket';
 import BondageContract from '../../ABI/Bondage';
 import Chart from 'chart.js';
 
-function MainMarketChart() {
-	const [dotCount, setDotCount] = useState(0);
+function MainMarketChart(props) {
+	//todo: lift the state of this
+	// const [dotCount, setDotCount] = useState(0);
 
 	//an array of coordiante of dot to cost pair
-	const [dotData, setDotData] = useState([{x:0,y:0}]);
+	const [dotData, setDotData] = useState([]);
 
 	//listen to event in the network in order to updaate the chart
-	MainMarketContract.events.Bonded({fromBlock: 'latest'},(error, res) => {
-		if (error) {
-			console.log(error);
-		} else {
-			console.log('dotCount ', Number(dotCount) + Number(res.returnValues.dots));
-			let updateDotTotal = Number(dotCount) + Number(res.returnValues.dots)
+	// MainMarketContract.events.Bonded({fromBlock: 'latest'},(error, res) => {
+	// 	if (error) {
+	// 		console.log(error);
+	// 	} else {
+	// 		console.log('dotCount ', Number(dotCount) + Number(res.returnValues.dots));
+	// 		let updateDotTotal = Number(dotCount) + Number(res.returnValues.dots)
 
-			setDotCount(updateDotTotal)
-			// // setDotData(dotData.push())
-			// //or
-			// //appendDatt(res.return.dots);
-		}
-	})
+	// 		setDotCount(updateDotTotal)
+	// 		// // setDotData(dotData.push())
+	// 		// //or
+	// 		// //appendDatt(res.return.dots);
+	// 	}
+	// })
 
 	useEffect(() => {
+		parseCurveToData();
 		const initData = async () => {
-			await getTotalBonded();
-			await parseCurveToData();
-			console.log("data: ", dotData);
-			displayChart();
+			// await parseCurveToData();
+			// console.log("use eff data: ", dotData);
+			// displayChart();
 		}
-		initData();
+		// initData();
 		// parseCurveToData();
 		// console.log("finsh setting data");
 		// console.log("data: ", dotData);
 		// displayChart();
-	}, [dotCount, dotData]);
+	}, [props]);
 
 
 	// given a number and and array of coefficents returns the output
@@ -50,8 +51,8 @@ function MainMarketChart() {
 		return result;
 	}
 
-
-	async function displayChart () {
+	async function displayChart (data) {
+		console.log("data: ", data);
 		var ctx = document.getElementById('myChart').getContext('2d');
 		var chart = new Chart(ctx, {
 		    // The type of chart we want to create
@@ -65,7 +66,7 @@ function MainMarketChart() {
 		            label: 'Bonding curve',
 		            backgroundColor: 'rgba(24, 175, 220, 0.1)',
 		            borderColor: 'rgba(24, 175,	 220, 1)',
-		            data: dotData 
+		            data: data
 		        }]
 		    },
 
@@ -76,11 +77,11 @@ function MainMarketChart() {
     	                type: 'linear',
     	                position: 'bottom'
     	            }],
-    	             yAxes: [{
-                ticks: {
-                    suggestedMax: 8
-                }
-            }]
+    	        	yAxes: [{
+                		ticks: {
+                    		suggestedMax: 8
+                		}
+            		}]
 		    	},
 	    		elements: {
 	            	line: {
@@ -103,20 +104,20 @@ function MainMarketChart() {
 	async function parseCurveToData() {
 		let doneWithData = false;	
 		let curve = await MainMarketContract.methods.getCurve().call();
-		let data = dotData;
+		let data = [];
+		console.log("props: ", props.issuedDots);
 
-		console.log("dot count, ", dotCount);
 		let start = 0; //graph start with x = 0;
 		for (let i = 0; i < curve.length;) {
 			let upperBound = curve[i + Number(curve[i]) + 1];
 			console.log("upperBoun: ", upperBound);
-			let upperSlice = i + Number(curve[i]) + 1;
-			let coeff = curve.slice(i+1, upperSlice);
+			let upperSlice = i + Number(curve[i]) + 1; //number where we need to slice to get coefficients
+			let coeff = curve.slice(i+1, upperSlice); //are of only the coeffcients
 
 			console.log("coeff ", coeff);
 			for (let j = start; j < upperBound; j++) {
 				//only diplay up to the current total bonded dots
-				if (j > dotCount) {
+				if (j > props.issuedDots) {
 					doneWithData = true;
 					break;
 				}
@@ -133,17 +134,17 @@ function MainMarketChart() {
 			i =  i + Number(curve[i]) + 2;
 			start = upperBound;
 		}
-
-		setDotData(data);
+		// setDotData(data);
+		displayChart(data);
 	}
 	
-	async function getTotalBonded() {
-		let mmAddres = MainMarketContract.options.address;
-		let endPoint = await MainMarketContract.methods.endPoint().call();
-		let totalBonded = await BondageContract.methods.getDotsIssued(mmAddres, endPoint).call();	
-		setDotCount(totalBonded);
-		// return totalBonded;
-	}
+	// async function getTotalBonded() {
+	// 	let mmAddres = MainMarketContract.options.address;
+	// 	let endPoint = await MainMarketContract.methods.endPoint().call();
+	// 	let totalBonded = await BondageContract.methods.getDotsIssued(mmAddres, endPoint).call();	
+	// 	setDotCount(totalBonded);
+	// 	// return totalBonded;
+	// }
 
 	return(
 		<canvas id="myChart"></canvas>
