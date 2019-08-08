@@ -75,6 +75,20 @@ const abi = [
   {
     constant: true,
     inputs: [],
+    name: 'oracleAddress',
+    outputs: [
+      {
+        name: '',
+        type: 'address'
+      }
+    ],
+    payable: false,
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    constant: true,
+    inputs: [],
     name: 'dispatch',
     outputs: [
       {
@@ -91,6 +105,22 @@ const abi = [
       {
         name: '_zapCoor',
         type: 'address'
+      },
+      {
+        name: '_oracleAddress',
+        type: 'address'
+      },
+      {
+        name: '_endpoint',
+        type: 'bytes32'
+      },
+      {
+        name: '_assetSymbol',
+        type: 'bytes32'
+      },
+      {
+        name: '_assetClass',
+        type: 'string'
       }
     ],
     payable: false,
@@ -102,22 +132,22 @@ const abi = [
     inputs: [
       {
         indexed: false,
-        name: 'response1',
+        name: 'zapInWei',
         type: 'uint256'
       },
       {
         indexed: false,
-        name: 'response2',
+        name: 'assetInWei',
         type: 'uint256'
       },
       {
         indexed: false,
-        name: 'response3',
+        name: 'zapInUsd',
         type: 'string'
       },
       {
         indexed: false,
-        name: 'response4',
+        name: 'assetInUsd',
         type: 'string'
       }
     ],
@@ -209,6 +239,14 @@ const abi = [
       },
       {
         name: 'response2',
+        type: 'string'
+      },
+      {
+        name: 'response3',
+        type: 'string'
+      },
+      {
+        name: 'response4',
         type: 'string'
       }
     ],

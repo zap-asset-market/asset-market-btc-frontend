@@ -188,19 +188,19 @@ function AuxiliaryMarket() {
         if (error) {
           console.log(error);
         } else {
-          setUsdZAP(events.returnValues.response3);
-          setZapUSD(1 / events.returnValues.response3);
-          setEthZAP(web3.utils.fromWei(events.returnValues.response1, 'ether'));
+          setUsdZAP(events.returnValues.zapInUsd);
+          setZapUSD(1 / events.returnValues.zapInUsd);
+          setEthZAP(web3.utils.fromWei(events.returnValues.zapInWei, 'ether'));
           setZapETH(
-            1 / web3.utils.fromWei(events.returnValues.response1, 'ether')
+            1 / web3.utils.fromWei(events.returnValues.zapInWei, 'ether')
           );
           setZapBTC(
-            web3.utils.fromWei(events.returnValues.response2, 'ether') /
-              web3.utils.fromWei(events.returnValues.response1, 'ether')
+            web3.utils.fromWei(events.returnValues.assetInWei, 'ether') /
+              web3.utils.fromWei(events.returnValues.zapInWei, 'ether')
           );
           let bitzap =
-            web3.utils.fromWei(events.returnValues.response1, 'ether') /
-            web3.utils.fromWei(events.returnValues.response2, 'ether');
+            web3.utils.fromWei(events.returnValues.zapInWei, 'ether') /
+            web3.utils.fromWei(events.returnValues.assetInWei, 'ether');
 
           setBtcZAP(fromExponential(bitzap));
         }
@@ -251,20 +251,21 @@ function AuxiliaryMarket() {
         if (error) {
           console.log(error);
         } else {
-          setUsdZAP(events.returnValues.response3);
-          setZapUSD(1 / events.returnValues.response3);
-          setEthZAP(web3.utils.fromWei(events.returnValues.response1, 'ether'));
+          setUsdZAP(events.returnValues.zapInUsd);
+          setZapUSD(1 / events.returnValues.zapInUsd);
+          setEthZAP(web3.utils.fromWei(events.returnValues.zapInWei, 'ether'));
           setZapETH(
-            1 / web3.utils.fromWei(events.returnValues.response1, 'ether')
+            1 / web3.utils.fromWei(events.returnValues.zapInWei, 'ether')
           );
           setZapBTC(
-            web3.utils.fromWei(events.returnValues.response2, 'ether') /
-              web3.utils.fromWei(events.returnValues.response1, 'ether')
+            web3.utils.fromWei(events.returnValues.assetInWei, 'ether') /
+              web3.utils.fromWei(events.returnValues.zapInWei, 'ether')
           );
-          setBtcZAP(
-            web3.utils.fromWei(events.returnValues.response1, 'ether') /
-              web3.utils.fromWei(events.returnValues.response2, 'ether')
-          );
+          let bitzap =
+            web3.utils.fromWei(events.returnValues.zapInWei, 'ether') /
+            web3.utils.fromWei(events.returnValues.assetInWei, 'ether');
+
+          setBtcZAP(fromExponential(bitzap));
         }
       }
     );
