@@ -64,26 +64,26 @@ const theme = createMuiTheme({
 });
 
 const currencies = [
-  {
-    value: 'USD',
-    label: '$'
-  },
-  {
-    value: 'BTC',
-    label: '฿'
-  },
-  {
-    value: 'WEI',
-    label: 'WEI'
-  },
-  {
-    value: 'ETH',
-    label: 'ETH'
-  },
-  {
-    value: 'ZAP',
-    label: 'ZAP'
-  },
+  // {
+  //   value: 'USD',
+  //   label: '$'
+  // },
+  // {
+  //   value: 'BTC',
+  //   label: '฿'
+  // },
+  // {
+  //   value: 'WEI',
+  //   label: 'WEI'
+  // },
+  // {
+  //   value: 'ETH',
+  //   label: 'ETH'
+  // },
+  // {
+  //   value: 'ZAP',
+  //   label: 'ZAP'
+  // },
   {
     value: 'AMT',
     label: 'AMT'
@@ -97,6 +97,10 @@ function AuxiliaryMarket() {
   const [zapBTC, setZapBTC] = useState('--');
   const [zapETH, setZapETH] = useState('--');
   const [zapUSD, setZapUSD] = useState('--');
+  const [btcZAP, setBtcZAP] = useState('--');
+  const [ethZAP, setEthZAP] = useState('--');
+  const [usdZAP, setUsdZAP] = useState('--');
+
   const [values, setValues] = useState({
     currency: 'AMT',
     amount: ''
@@ -116,16 +120,12 @@ function AuxiliaryMarket() {
       }
     };
     initData();
-  }, [userAddress, zapBalance, amtBalance]);
+  }, [userAddress, zapBalance, amtBalance, usdZAP]);
 
   const classes = useStyles();
 
   const handleChange = event => {
     setValues({ ...values, [event.target.name]: event.target.value });
-  };
-
-  const timeout = ms => {
-    return new Promise(resolve => setTimeout(resolve, ms));
   };
 
   const getAddress = async () => {
@@ -155,56 +155,125 @@ function AuxiliaryMarket() {
   };
 
   const buy = async () => {
+    let amount = web3.utils.toWei(values.amount, 'ether');
+    console.log(amount);
+
+    let gas = await AuxiliaryMarketContract.methods
+      .buy(amount)
+      .estimateGas({ from: userAddress });
+
     await AuxiliaryMarketContract.methods
-      .buy(values.amount)
-      .send({ from: userAddress, gas: 6620000 });
-    //.estimateGas({ from: userAddress })
-    //.then(gasAmount => console.log(gasAmount));
+      .buy(amount)
+      .send({ from: userAddress, gas });
+
     setAmtBalance('processing transaction...');
+    setZapBalance('processing transaction...');
 
-    // await timeout(5000);
+    AuxiliaryMarketContract.once(
+      'Bought',
+      { fromBlock: 'latest' },
+      (error, events) => {
+        if (error) {
+          console.log(error);
+        } else {
+          var amt = web3.utils.fromWei(events.returnValues.amt, 'ether');
+          setAmtBalance(amt);
+        }
+      }
+    );
 
-    const amtBalance = await AuxiliaryMarketContract.methods
-      .getAMTBalance(userAddress)
-      .call();
-
-    let amt = web3.utils.fromWei(amtBalance, 'ether');
-
-    console.log(amt);
-
-    setAmtBalance(amt);
+    AuxiliaryMarketContract.events.Results(
+      { fromBlock: 'latest' },
+      (error, events) => {
+        if (error) {
+          console.log(error);
+        } else {
+          setUsdZAP(events.returnValues.response3);
+          setZapUSD(1 / events.returnValues.response3);
+          setEthZAP(web3.utils.fromWei(events.returnValues.response1, 'ether'));
+          setZapETH(
+            1 / web3.utils.fromWei(events.returnValues.response1, 'ether')
+          );
+          setZapBTC(
+            web3.utils.fromWei(events.returnValues.response2, 'ether') /
+              web3.utils.fromWei(events.returnValues.response1, 'ether')
+          );
+          setBtcZAP(
+            web3.utils.fromWei(events.returnValues.response1, 'ether') /
+              web3.utils.fromWei(events.returnValues.response2, 'ether')
+          );
+          // console.log(
+          //   Number(
+          //     web3.utils.fromWei(events.returnValues.response1, 'ether') /
+          //       web3.utils.fromWei(events.returnValues.response2, 'ether')
+          //   ).toPrecision(5)
+          // );
+        }
+      }
+    );
   };
 
   const sell = async () => {
-    let approvedAmount = values.amount + '0';
-    console.log(AuxiliaryMarketContract.options.address);
+    let amount = web3.utils.toWei(values.amount, 'ether');
+    console.log(amount);
+
+    let approvedAmount = amount + '0';
+
     await AuxiliaryMarketTokenContract.methods
       .approve(AuxiliaryMarketContract.options.address, approvedAmount)
       .send({
         from: userAddress,
         gas: 400000
       });
-    await AuxiliaryMarketContract.methods.sell(values.amount).send({
+
+    let gas = await AuxiliaryMarketContract.methods
+      .sell(amount)
+      .estimateGas({ from: userAddress });
+
+    await AuxiliaryMarketContract.methods.sell(amount).send({
       from: userAddress,
-      gas: 400000
+      gas
     });
-    // .estimateGas({ from: userAddress })
-    //   .then(gasAmount => console.log(gasAmount));
-    //await timeout(4000);
 
-    const amtBalance = await AuxiliaryMarketContract.methods
-      .getAMTBalance(userAddress)
-      .call();
+    setAmtBalance('processing transaction...');
+    setZapBalance('processing transaction...');
 
-    let amt = web3.utils.fromWei(amtBalance, 'ether');
-    console.log(amt);
+    AuxiliaryMarketContract.once(
+      'Sold',
+      { fromBlock: 'latest' },
+      (error, events) => {
+        if (error) {
+          console.log(error);
+        } else {
+          var amt = web3.utils.fromWei(events.returnValues.amt, 'ether');
+          setAmtBalance(amt);
+        }
+      }
+    );
 
-    setAmtBalance(amt);
-    // await AuxiliaryMarketContract.methods
-    //   .sell('4000')
-    //   .send({ from: accounts[0], gas: 300000 })
-    //   .then(receipt => console.log(receipt))
-    //   .catch(err => console.log(err));
+    AuxiliaryMarketContract.events.Results(
+      { fromBlock: 'latest' },
+      (error, events) => {
+        if (error) {
+          console.log(error);
+        } else {
+          setUsdZAP(events.returnValues.response3);
+          setZapUSD(1 / events.returnValues.response3);
+          setEthZAP(web3.utils.fromWei(events.returnValues.response1, 'ether'));
+          setZapETH(
+            1 / web3.utils.fromWei(events.returnValues.response1, 'ether')
+          );
+          setZapBTC(
+            web3.utils.fromWei(events.returnValues.response2, 'ether') /
+              web3.utils.fromWei(events.returnValues.response1, 'ether')
+          );
+          setBtcZAP(
+            web3.utils.fromWei(events.returnValues.response1, 'ether') /
+              web3.utils.fromWei(events.returnValues.response2, 'ether')
+          );
+        }
+      }
+    );
   };
 
   return (
@@ -237,6 +306,29 @@ function AuxiliaryMarket() {
                 <h2>ZAP/USD</h2>
                 <Divider light />
                 <div style={{ padding: 25 }}>{zapUSD}</div>
+              </Paper>
+            </Grid>
+          </Grid>
+          <Grid container spacing={5}>
+            <Grid item xs>
+              <Paper className={classes.paper}>
+                <h2>BTC/ZAP</h2>
+                <Divider light />
+                <div style={{ padding: 25 }}>{btcZAP}</div>
+              </Paper>
+            </Grid>
+            <Grid item xs>
+              <Paper className={classes.paper}>
+                <h2>ETH/ZAP</h2>
+                <Divider light />
+                <div style={{ padding: 25 }}>{ethZAP}</div>
+              </Paper>
+            </Grid>
+            <Grid item xs>
+              <Paper className={classes.paper}>
+                <h2>USD/ZAP</h2>
+                <Divider light />
+                <div style={{ padding: 25 }}>{usdZAP}</div>
               </Paper>
             </Grid>
           </Grid>
@@ -283,7 +375,7 @@ function AuxiliaryMarket() {
 
                 <TextField
                   id='standard-number'
-                  label='Amount In Wei'
+                  label='Amount'
                   name='amount'
                   value={values.amount}
                   onChange={handleChange}

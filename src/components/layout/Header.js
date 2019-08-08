@@ -139,29 +139,29 @@ function Header(props) {
           </Link>
           <div className={classes.grow} />
           <div className={classes.sectionDesktop}>
-            <Button>
-              <Link
-                color='secondary'
-                className={classes.toolbarLink}
-                component={RouterLink}
-                to='/MainMarket'
-                underline='none'
-              >
-                Main Market
-              </Link>
-            </Button>
-            <Button>
-              <Link
-                color='inherit'
-                href='#text-buttons'
-                className={classes.toolbarLink}
-                component={RouterLink}
-                to='/AuxiliaryMarket'
-                underline='none'
-              >
-                auxiliary Market
-              </Link>
-            </Button>
+            {/* <Button> */}
+            <Link
+              color='secondary'
+              className={classes.toolbarLink}
+              component={RouterLink}
+              to='/MainMarket'
+              underline='none'
+            >
+              Main Market
+            </Link>
+            {/* </Button> */}
+            {/* <Button> */}
+            <Link
+              color='inherit'
+              href='#text-buttons'
+              className={classes.toolbarLink}
+              component={RouterLink}
+              to='/AuxiliaryMarket'
+              underline='none'
+            >
+              Auxiliary Market
+            </Link>
+            {/* </Button> */}
             <IconButton
               edge='end'
               aria-label='Account of current user'
