@@ -108,6 +108,7 @@ function MainMarket() {
   const [userAddress, setUserAddress] = useState('');
   const [mmtBal, setMmtBalance] = useState(0);
   const [depositedZap, setDepositedBalance] = useState(0);
+  const [orderTotal, setOrderTotal] = useState(0);
 
 
   const classes = useStyles();
@@ -211,7 +212,17 @@ function MainMarket() {
       await getZapBalance();
     }
     initData();
-  }, [userAddress, mmtBal, depositedZap]);
+  }, [userAddress, mmtBal, depositedZap, values.mmtAmount]);
+
+  // this take care of updating the price
+  useEffect(() => {
+    MainMarketContract.methods.zapForDots(values.mmtAmount).call()
+      .then((orderTotal) => {
+        console.log("orderTotal: ", orderTotal);
+        setOrderTotal(orderTotal);
+      }
+      );
+  }); 
 
   return (
     <ThemeProvider theme={theme}>
@@ -279,6 +290,9 @@ function MainMarket() {
                     />
                 </ListItem>
                 <ListItem>
+                  order total: {orderTotal}
+                </ListItem>
+                <ListItem>
                   <Grid
                     container
                     justify='space-between'
@@ -293,7 +307,7 @@ function MainMarket() {
                         style={{ height: '100%' }}
                         onClick={buyMMT}
                       >
-                        Buy MMT/Bond
+                        Bond
                       </Button>
                     </Grid>
                     <Grid item xs={6} lg={5}>
@@ -304,7 +318,7 @@ function MainMarket() {
                         style={{ height: '100%' }}
                         onClick={sellMMT}
                       >
-                        Sell MMT
+                        Unbond
                       </Button>
                     </Grid>
 
@@ -335,7 +349,7 @@ function MainMarket() {
                         style={{ height: '100%' }}
                         onClick={depositZap}
                       >
-                        Depoisit Zap
+                        Deposit Zap
                       </Button>
                     </Grid>
                   </Grid>

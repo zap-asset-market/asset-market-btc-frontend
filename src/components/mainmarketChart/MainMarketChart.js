@@ -4,22 +4,25 @@ import BondageContract from '../../ABI/Bondage';
 import Chart from 'chart.js';
 
 function MainMarketChart() {
-	// let data = []; might make gloabel if it keeps rerendering
-	// MainMarketContract.events.Bonded({fromBlock: 0},(error, res) => {
-	// 	if (error) {
-	// 		console.log(error);
-	// 	} else {
-	// 		console.log('res ', res.returnValues.dots);
-	// 		// setDotData(dotData.push())
-	// 		//or
-	// 		//appendDatt(res.return.dots);
-	// 	}
-	// })
-	
 	const [dotCount, setDotCount] = useState(0);
 
 	//an array of coordiante of dot to cost pair
 	const [dotData, setDotData] = useState([{x:0,y:0}]);
+
+	//listen to event in the network in order to updaate the chart
+	MainMarketContract.events.Bonded({fromBlock: 'latest'},(error, res) => {
+		if (error) {
+			console.log(error);
+		} else {
+			console.log('dotCount ', Number(dotCount) + Number(res.returnValues.dots));
+			let updateDotTotal = Number(dotCount) + Number(res.returnValues.dots)
+
+			setDotCount(updateDotTotal)
+			// // setDotData(dotData.push())
+			// //or
+			// //appendDatt(res.return.dots);
+		}
+	})
 
 	useEffect(() => {
 		const initData = async () => {
@@ -53,16 +56,16 @@ function MainMarketChart() {
 		var chart = new Chart(ctx, {
 		    // The type of chart we want to create
 		    type: 'line',
+		    xAxisID: "dots",
+		    yAxisID: 'price',
 
 		    // The data for our dataset
 		    data: {
 		        datasets: [{
 		            label: 'Bonding curve',
-		            backgroundColor: 'rgb(255, 99, 132)',
-		            borderColor: 'rgb(255, 99, 132)',
+		            backgroundColor: 'rgba(24, 175, 220, 0.1)',
+		            borderColor: 'rgba(24, 175,	 220, 1)',
 		            data: dotData 
-		            // [{x:0, y:1},
-		            // 		{x:2,y:4}]
 		        }]
 		    },
 
@@ -72,13 +75,33 @@ function MainMarketChart() {
     	            xAxes: [{
     	                type: 'linear',
     	                position: 'bottom'
-    	            }]
-		    	}
+    	            }],
+    	             yAxes: [{
+                ticks: {
+                    suggestedMax: 8
+                }
+            }]
+		    	},
+	    		elements: {
+	            	line: {
+	                	tension: 0 // disables bezier curves
+	            	}
+	    	    },
+	    	    //disable animations
+	    	    animation: {
+	    	        duration: 0 // general animation time
+	    	    },
+	            hover: {
+	                animationDuration: 0 // duration of animations when hovering an item
+	            },
+	            responsiveAnimationDuration: 0 // animation duration after a resiz
 		    }
+		    
 		});
 	}
 
 	async function parseCurveToData() {
+		let doneWithData = false;	
 		let curve = await MainMarketContract.methods.getCurve().call();
 		let data = dotData;
 
@@ -94,8 +117,7 @@ function MainMarketChart() {
 			for (let j = start; j < upperBound; j++) {
 				//only diplay up to the current total bonded dots
 				if (j > dotCount) {
-					console.log("j: ", j);
-					console.log("dotCount: ", dotCount);
+					doneWithData = true;
 					break;
 				}
 
@@ -106,14 +128,11 @@ function MainMarketChart() {
 				}
 				data.push(dataObject);
 			}
+			if (doneWithData) {break}
+
 			i =  i + Number(curve[i]) + 2;
 			start = upperBound;
 		}
-
-		let mockData = [
-			{x:0,y:1},
-			{x:2,y:2}
-		];
 
 		setDotData(data);
 	}
