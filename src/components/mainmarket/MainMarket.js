@@ -245,6 +245,7 @@ function MainMarket() {
 
   // this take care of updating the price
   useEffect(() => {
+    console.log("second use effect");
     MainMarketContract.methods.zapForDots(values.mmtAmount).call()
       .then((orderTotal) => {
         console.log("orderTotal: ", orderTotal);
@@ -279,18 +280,22 @@ function MainMarket() {
   ],
 };
 const options = {
-              scales: {
-                      xAxes: [{
-                          type: 'linear',
-                          position: 'bottom'
-                      }],
-                    yAxes: [{
-                        ticks: {
-                            suggestedMin: 0,
-                            suggestedMax: 8
-                        }
-                    }]
-              }
+    scales: {
+      xAxes: [{
+          type: 'linear',
+          position: 'bottom',
+          ticks: {
+            suggestedMax: 1000
+          }
+      }],
+      yAxes: [{
+        ticks: {
+            suggestedMin: 0,
+            suggestedMax: 8
+        }
+      }]
+    },
+    offset: true
   }
 
 
@@ -308,17 +313,15 @@ const options = {
   async function parseCurveToData() {
     let doneWithData = false; 
     let curve = await MainMarketContract.methods.getCurve().call();
+    curve = curve.map(n => Number(n));
     let data = [];
-    console.log("issuedDots:", issuedDots);
 
     let start = 0; //graph start with x = 0;
     for (let i = 0; i < curve.length;) {
-      let upperBound = curve[i + Number(curve[i]) + 1];
-      console.log("upperBoun: ", upperBound);
-      let upperSlice = i + Number(curve[i]) + 1; //number where we need to slice to get coefficients
+      let upperBound = curve[i + curve[i] + 1];
+      let upperSlice = i + curve[i] + 1; //number where we need to slice to get coefficients
       let coeff = curve.slice(i+1, upperSlice); //are of only the coeffcients
 
-      console.log("coeff ", coeff);
       for (let j = start; j < upperBound; j++) {
         //only diplay up to the current total bonded dots
         if (j > issuedDots) {
@@ -335,7 +338,7 @@ const options = {
       }
       if (doneWithData) {break}
 
-      i =  i + Number(curve[i]) + 2;
+      i =  i + curve[i] + 2;
       start = upperBound;
     }
     setDotData(data);
