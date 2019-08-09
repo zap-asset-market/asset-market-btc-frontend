@@ -119,8 +119,11 @@ function AuxiliaryMarket() {
             if (error) {
               console.log(error);
             } else {
+              console.log(events);
               let newEvent = evs;
+
               newEvent['results'] = events[events.length - 1].returnValues;
+
               setEvs(newEvent);
 
               setUsdZAP(evs.results.zapInUsd);
