@@ -101,6 +101,7 @@ function AuxiliaryMarket() {
   const [btcZAP, setBtcZAP] = useState('--');
   const [ethZAP, setEthZAP] = useState('--');
   const [usdZAP, setUsdZAP] = useState('--');
+  const [evs, setEvs] = useState({});
 
   const [values, setValues] = useState({
     currency: 'AMT',
@@ -111,6 +112,34 @@ function AuxiliaryMarket() {
     const initData = async () => {
       let userAddress = await getAddress();
       try {
+        AuxiliaryMarketContract.getPastEvents(
+          'Results',
+          { fromBlock: 0, toBlock: 'latest' },
+          (error, events) => {
+            if (error) {
+              console.log(error);
+            } else {
+              let newEvent = evs;
+              newEvent['results'] = events[events.length - 1].returnValues;
+              setEvs(newEvent);
+
+              setUsdZAP(evs.results.zapInUsd);
+              setZapUSD(1 / evs.results.zapInUsd);
+              setEthZAP(web3.utils.fromWei(evs.results.zapInWei, 'ether'));
+              setZapETH(1 / web3.utils.fromWei(evs.results.zapInWei, 'ether'));
+              setZapBTC(
+                web3.utils.fromWei(evs.results.assetInWei, 'ether') /
+                  web3.utils.fromWei(evs.results.zapInWei, 'ether')
+              );
+              let bitzap =
+                web3.utils.fromWei(evs.results.zapInWei, 'ether') /
+                web3.utils.fromWei(evs.results.assetInWei, 'ether');
+
+              setBtcZAP(fromExponential(bitzap));
+            }
+          }
+        );
+
         setUserAddress(userAddress);
         let amtBalance = await getAMTBalance();
         setAmtBalance(amtBalance);
@@ -121,7 +150,7 @@ function AuxiliaryMarket() {
       }
     };
     initData();
-  }, [userAddress, zapBalance, amtBalance, usdZAP]);
+  }, [userAddress, zapBalance, amtBalance, usdZAP, evs]);
 
   const classes = useStyles();
 
@@ -270,7 +299,7 @@ function AuxiliaryMarket() {
       }
     );
   };
-
+  console.log(evs);
   return (
     <ThemeProvider theme={theme}>
       <div className='layout'>
