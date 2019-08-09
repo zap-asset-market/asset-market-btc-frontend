@@ -40,6 +40,37 @@ const abi = [
     inputs: [
       {
         name: '',
+        type: 'address'
+      }
+    ],
+    name: 'holders',
+    outputs: [
+      {
+        name: 'initialized',
+        type: 'bool'
+      },
+      {
+        name: 'tokens',
+        type: 'uint256'
+      },
+      {
+        name: 'zapBalance',
+        type: 'uint256'
+      },
+      {
+        name: 'bonded',
+        type: 'bool'
+      }
+    ],
+    payable: false,
+    stateMutability: 'view',
+    type: 'function'
+  },
+  {
+    constant: true,
+    inputs: [
+      {
+        name: '',
         type: 'uint256'
       }
     ],
@@ -185,6 +216,23 @@ const abi = [
       }
     ],
     name: 'Unbonded',
+    type: 'event'
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        name: 'recepient',
+        type: 'address'
+      },
+      {
+        indexed: false,
+        name: 'amount',
+        type: 'uint256'
+      }
+    ],
+    name: 'TransferredFee',
     type: 'event'
   },
   {
@@ -395,4 +443,5 @@ const abi = [
     type: 'function'
   }
 ];
+
 export default new web3.eth.Contract(abi, Addresses.mainMarket);
