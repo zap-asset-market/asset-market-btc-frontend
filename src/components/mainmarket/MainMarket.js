@@ -45,6 +45,13 @@ const useStyles = makeStyles(theme => ({
       backgroundColor: '#48b0e0'
     }
   },
+  blueBtnTran: {
+    backgroundColor: 'rgba(24, 175, 220, 0.2)',
+    border: '1px solid rgb(24, 175, 220)',
+    '&:hover': {
+      backgroundColor: 'rgba(24, 175, 220, 0.4)'
+    },
+  },
   greenBtn: {
     backgroundColor: '#3ed138',
     '&:hover': {
@@ -100,8 +107,9 @@ function MainMarket() {
   //state of inputs
   const [values, setValues] = useState({
     currency: 'mmt',
-    mmtAmount: "",
-    zapAmount: "",  //amount user want to buy
+    mmtAmount: '',
+    depositAmount: '',  //amount user want to buy
+    withdrawAmount: ''
   });
   const [userAddress, setUserAddress] = useState('');
   const [mmtBal, setMmtBalance] = useState(0);
@@ -118,25 +126,39 @@ function MainMarket() {
     setUserAddress(accounts[0])
     // return accounts[0];
   }
-  async function depositZap(){
-    const accounts = await web3.eth.getAccounts();
 
-    let amountInWei = web3.utils.toWei(values.zapAmount, 'ether')
+  async function depositZap(){
+        if (values.depositAmount === '') return;
+
+    let amountInWei = web3.utils.toWei(values.depositAmount, 'ether')
 
     try {
       //approve zap in order to deposit to main market
       await ZapTokenContract.methods
         .approve(MainMarketContract.options.address, amountInWei)
-        .send({from: accounts[0], gas:400000});
+        .send({from: userAddress, gas:400000});
 
       //tranfer zap to main market
       await MainMarketContract.methods
         .depositZap(amountInWei)
-        .send({ from: accounts[0] })
+        .send({ from: userAddress })
       
       //update new zapbalance
       await getZapBalance();
     } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async function withdrawFunds(){
+    if (values.withdrawAmount === '') return;
+    let amountInWei = web3.utils.toWei(values.withdrawAmount, 'ether')
+
+    try {
+      await MainMarketContract.methods.withdrawFunds(amountInWei).send({from: userAddress, gas: 400000}); 
+      //update new zapbalance
+      await getZapBalance();
+    }catch (error) {
       console.log(error);
     }
 
@@ -161,7 +183,6 @@ function MainMarket() {
     let mmAddres = MainMarketContract.options.address;
     let endPoint = await MainMarketContract.methods.endPoint().call();
     let totalBonded = await BondageContract.methods.getDotsIssued(mmAddres, endPoint).call(); 
-    console.log("mm total bonded ", totalBonded);
     setIssuedDots(totalBonded);
   }
 
@@ -171,7 +192,6 @@ function MainMarket() {
     let deposited = await MainMarketContract.methods.getDepositedZap().call();
     // convert from weizap to zap
     let depositedInZap = web3.utils.fromWei(deposited, 'ether');
-    console.log("deposidet in zap ", depositedInZap);
     setDepositedBalance(depositedInZap);
     // return depositedInZap;
   }
@@ -221,7 +241,7 @@ function MainMarket() {
       await parseCurveToData();
     }
     initData();
-  }, [userAddress, mmtBal, issuedDots, depositedZap, values.mmtAmountm ]);
+  }, [userAddress, mmtBal, issuedDots, depositedZap ]);
 
   // this take care of updating the price
   useEffect(() => {
@@ -231,7 +251,7 @@ function MainMarket() {
         setOrderTotal(orderTotal);
       }
       );
-  });
+  }, [values.mmtAmount]);
 
   const data = {
   datasets: [
@@ -318,12 +338,9 @@ const options = {
       i =  i + Number(curve[i]) + 2;
       start = upperBound;
     }
-    console.log("data: ", data);
     setDotData(data);
-    console.log("dotData, ", dotData);
     // displayChart(data);
   }
-
   return (
     <ThemeProvider theme={theme}>
       <div className='layout'>
@@ -430,34 +447,63 @@ const options = {
                     <Grid item xs={12}>
                       <Divider light />
                     </Grid>
-                    <ListItem>
-                      <TextField
-                        id='standard-number'
-                        label='zap Amount'
-                        placeholder='0'
-                        value={values.zapAmount}
-                        onChange={handleChange('zapAmount')}
-                        type='number'
-                        className={classes.textField}
-                        InputLabelProps={{
-                          shrink: true
-                        }}
-                        margin='normal'
-                      />
-                    </ListItem>
+                    
+                  </Grid>
+                </ListItem>
+                <ListItem>
+                  <TextField
+                    id='standard-number'
+                    label='deposit Amount'
+                    placeholder='0'
+                    value={values.depositAmount}
+                    onChange={handleChange('depositAmount')}
+                    type='number'
+                    className={classes.textField}
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                    margin='normal'
+                  />
+                </ListItem>
+                <ListItem>
+                  <Button
+                    className={classes.blueBtn}
+                    variant='contained'
+                    fullWidth
+                    style={{ height: '100%' }}
+                    onClick={depositZap}
+                  >
+                    Deposit Zap
+                  </Button>
+                </ListItem>
 
-                    <Grid item xs={12}>
-                      <Button
-                        className={classes.blueBtn}
+                <Divider light />
+
+                <ListItem>
+                  <TextField
+                    id='standard-number'
+                    label='withdraw amount'
+                    placeholder='0'
+                    value={values.withdrawAmount}
+                    onChange={handleChange('withdrawAmount')}
+                    type='number'
+                    className={classes.textField}
+                    InputLabelProps={{
+                      shrink: true
+                    }}
+                    margin='normal'
+                  />
+                </ListItem>
+                <ListItem>
+                  <Button
+                    className={classes.blueBtnTran}
                         variant='contained'
                         fullWidth
                         style={{ height: '100%' }}
-                        onClick={depositZap}
+                        onClick={withdrawFunds}
                       >
-                        Deposit Zap
+                        withdraw zap
                       </Button>
-                    </Grid>
-                  </Grid>
                 </ListItem>
               </form>
             </Paper>
